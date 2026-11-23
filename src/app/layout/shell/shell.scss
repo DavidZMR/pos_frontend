@@ -249,6 +249,7 @@
 .context {
   position: relative;
   display: flex;
+  margin-inline-end: auto;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
@@ -298,7 +299,6 @@
   align-items: center;
   gap: var(--space-2);
   height: 2rem;
-  margin-inline-start: auto;
   padding: 0 var(--space-3);
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -324,13 +324,8 @@
 }
 
 .version {
-  margin-inline-start: auto;
   font-size: var(--text-xs);
   color: var(--ink-faint);
-}
-
-.session-chip + .version {
-  margin-inline-start: var(--space-3);
 }
 
 /* La caja ocupa todo: sin márgenes ni ancho máximo. */

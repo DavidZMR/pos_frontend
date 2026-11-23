@@ -6,6 +6,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { startBackend } = require('./lib/backend.cjs');
 const { loadConfig } = require('./lib/config-store.cjs');
+const { setupHardware } = require('./lib/hardware.cjs');
 const { createLogger } = require('./lib/logger.cjs');
 
 const APP_SCHEME = 'app';
@@ -25,6 +26,7 @@ protocol.registerSchemesAsPrivileged([
 let log;
 let mainWindow = null;
 let backend = null;
+let hardware = null;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -38,7 +40,10 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(boot);
 
   app.on('window-all-closed', () => app.quit());
-  app.on('will-quit', () => backend?.stop());
+  app.on('will-quit', () => {
+    hardware?.stop();
+    backend?.stop();
+  });
 }
 
 async function boot() {
@@ -52,7 +57,20 @@ async function boot() {
 
   const splash = createSplash();
   try {
-    const apiUrl = await resolveApiUrl();
+    const config = loadConfig(app.getPath('userData'), log);
+    // El hardware es opcional: si falla, la app sigue (peso a mano, sin imprimir).
+    try {
+      hardware = setupHardware({
+        config,
+        userDataDir: app.getPath('userData'),
+        log,
+        getWindow: () => mainWindow,
+        isTrustedSender,
+      });
+    } catch (error) {
+      log.error('No se pudo iniciar el hardware', error);
+    }
+    const apiUrl = await resolveApiUrl(config);
     log.info(`API: ${apiUrl}`);
     createMainWindow(apiUrl, () => {
       if (!splash.isDestroyed()) splash.destroy();
@@ -69,8 +87,7 @@ async function boot() {
 }
 
 /** API externa (POS_API_URL o config.json) o backend embebido en un puerto libre. */
-async function resolveApiUrl() {
-  const config = loadConfig(app.getPath('userData'), log);
+async function resolveApiUrl(config) {
   const external = process.env.POS_API_URL || config.apiUrl;
   if (external) {
     log.info('Usando API externa; no se lanza el backend embebido');
@@ -86,6 +103,12 @@ async function resolveApiUrl() {
     corsOrigin: DEV_SERVER_URL || APP_ORIGIN,
   });
   return `http://127.0.0.1:${backend.port}/api`;
+}
+
+/** Peticiones IPC solo desde la UI de la app (nunca desde una página externa). */
+function isTrustedSender(event) {
+  const url = event.senderFrame?.url ?? '';
+  return url.startsWith(APP_ORIGIN) || Boolean(DEV_SERVER_URL && url.startsWith(DEV_SERVER_URL));
 }
 
 function registerUiProtocol() {

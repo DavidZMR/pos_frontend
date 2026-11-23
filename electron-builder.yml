@@ -11,10 +11,14 @@ directories:
 files:
   - '**/*'
   - '!**/*.map'
-  # electron/ aún no tiene dependencias propias; sin esto electron-builder empaqueta las de
-  # Angular de la raíz (innecesarias: la UI ya va compilada en electron/ui).
-  # Fase 5: al agregar serialport en electron/package.json, quitar esta línea.
-  - '!node_modules{,/**/*}'
+  - '!lib/**/*.test.cjs'
+  - '!lib/**/test-ports.cjs'
+  # serialport trae binarios para todas las plataformas: solo se instala en Windows x64.
+  - '!node_modules/@serialport/bindings-cpp/prebuilds/{android-*,darwin-*,linux-*,win32-arm64,win32-ia32}{,/**/*}'
+
+# El binario nativo (.node) no puede cargarse desde dentro del asar.
+asarUnpack:
+  - 'node_modules/@serialport/bindings-cpp/prebuilds/win32-x64/**'
 
 # Backend compilado + .env + node_modules de producción, fuera del asar.
 # Lección de JJ: electron-builder omite node_modules en extraResources si no se declaran aparte.

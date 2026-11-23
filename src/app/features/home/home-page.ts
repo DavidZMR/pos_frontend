@@ -12,6 +12,7 @@ const DESCRIPTIONS: Record<string, string> = {
   '/ventas': 'Historial de tickets, detalle y cancelaciones.',
   '/negocios': 'Da de alta negocios, edita sus datos y desactívalos.',
   '/usuarios': 'Crea cuentas para tu equipo y controla quién puede entrar.',
+  '/equipo': 'Báscula de esta computadora; sin báscula el peso se escribe a mano.',
   '/productos': 'Precios, códigos, existencias y su historial de cambios.',
   '/categorias': 'Agrupa tus productos para encontrarlos rápido.',
   '/proveedores': 'Quién te surte la mercancía.',

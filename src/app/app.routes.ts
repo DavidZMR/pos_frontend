@@ -108,6 +108,13 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'equipo',
+        title: `Equipo de esta PC · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () =>
+          import('./features/settings/hardware-page').then((m) => m.HardwarePage),
+      },
+      {
         path: 'proveedores',
         title: `Proveedores · ${TITLE}`,
         canMatch: [roleGuard('superadmin', 'admin')],

@@ -11,11 +11,12 @@ import { ConfigService } from '../../core/config/config-service';
 import { ChangePasswordDialog } from '../../features/account/change-password-dialog';
 import { DialogService } from '../../shared/ui/dialog/dialog-service';
 import { PosIcon } from '../../shared/ui/icon/icon';
+import { PosScaleIndicator } from '../scale-indicator';
 import { NAV } from '../nav';
 
 @Component({
   selector: 'pos-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, PosIcon],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, PosIcon, PosScaleIndicator],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: { '(document:keydown.escape)': 'closeNav()' },
