@@ -10,6 +10,7 @@ Angular 22 (standalone, zoneless, OnPush por defecto, Signal Forms) · TypeScrip
 |---|---|
 | `npm start` | `ng serve` en http://localhost:4200 (usa el backend de `../pos_backend` con `npm run dev`) |
 | `npm test` | Pruebas unitarias (Vitest) |
+| `npm run test:electron` | Pruebas del proceso principal de Electron (báscula) con `node --test` |
 | `npm run build` | Build de producción |
 | `npx ng generate component|service|pipe|guard ...` | Generar código con el CLI (siempre) |
 | `npm run electron:dev` | App de escritorio contra `ng serve` + backend dev |
@@ -45,7 +46,9 @@ scripts/         stage-backend, verificación de empaquetado
 - **Sesión**: `AuthStore` (token/usuario/negocio en signals + localStorage). El superadmin elige negocio en la barra superior (`BusinessContext`), que viaja como `x-business-id` (interceptor). 401 del API ⇒ logout automático.
 - **Pantallas por negocio** (catálogo, almacén, ventas): envolver en `<pos-business-gate>` y en cada `httpResource` devolver `undefined` si `!context.scope()` (así no pide datos sin negocio y recarga al cambiar de negocio). Listas pequeñas compartidas (categorías, proveedores) en `CatalogLookups`.
 - **Pruebas E2E**: backend con `npm run dev:memory -- --seed` en `pos_backend` (replica set en memoria + marisquería demo; usuarios `demo.root`/`demo.admin`/`demo.caja`, clave `Demo12345`; nunca Atlas) + `ng serve`; Playwright con la skill `webapp-testing`. Reiniciar el backend entre corridas para datos limpios. Si `ng serve` no ve archivos NUEVOS, reiniciarlo.
-- Hardware vía `window.pos` (preload). Si no existe (navegador) o no está configurado, la función se degrada: cantidad manual, sin impresión.
+- **Hardware** vía `window.pos` (preload, tipos en `core/config/pos-bridge.ts`). Si no existe (navegador) o no está configurado, se degrada: peso escrito a mano, sin impresión.
+  - Báscula: `ScaleStore` (signals `status`/`reading` en gramos enteros). En la captura de peso (`QtyDialog`), solo productos por **kg**: con báscula conectada el campo sigue la lectura y solo agrega con peso **estable**; si el cajero escribe, manda lo escrito (`weighed: false`). Sin báscula: se escribe el peso. **Nunca** un modo simulado en la app.
+  - Configuración por PC en `/equipo` (admin). Lógica serial en `electron/lib/scale/`, probada con `npm run test:electron` (`SerialPortMock`).
 - Textos de UI en español.
 
 ---
