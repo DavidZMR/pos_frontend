@@ -88,10 +88,16 @@
         }
       </div>
 
+      @if (sessionChip(); as chip) {
+        <a class="session-chip" routerLink="/caja" aria-label="Caja abierta: ver turno y corte">
+          <span class="session-dot" aria-hidden="true"></span>
+          {{ chip }}
+        </a>
+      }
       <span class="version">v{{ config.appVersion }}</span>
     </header>
 
-    <main class="content" id="contenido" tabindex="-1">
+    <main class="content" [class.full]="fullBleed()" id="contenido" tabindex="-1">
       <router-outlet />
     </main>
   </div>

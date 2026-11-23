@@ -21,7 +21,42 @@ class Host {
   clicks = 0;
 }
 
+@Component({
+  imports: [PosButton],
+  template: `
+    <form (submit)="submitted = submitted + 1; $event.preventDefault()">
+      <input id="field" />
+      <button
+        posButton
+        icon="x"
+        iconOnly
+        aria-label="Cerrar"
+        (click)="closed = closed + 1"
+      ></button>
+      <button posButton type="submit">Guardar</button>
+    </form>
+  `,
+})
+class FormHost {
+  submitted = 0;
+  closed = 0;
+}
+
 describe('PosButton', () => {
+  it('es type="button" por defecto: Enter en un campo envía con el botón submit, no "cierra"', async () => {
+    const fixture = TestBed.createComponent(FormHost);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const [close, save] = Array.from(el.querySelectorAll('button'));
+
+    expect(close?.getAttribute('type')).toBe('button');
+    expect(save?.getAttribute('type')).toBe('submit');
+
+    (el.querySelector('form') as HTMLFormElement).requestSubmit();
+    expect(fixture.componentInstance.submitted).toBe(1);
+    expect(fixture.componentInstance.closed).toBe(0);
+  });
+
   it('aplica variante y tamaño como clases del botón nativo', async () => {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();

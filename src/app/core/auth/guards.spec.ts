@@ -51,7 +51,8 @@ describe('guards', () => {
   it('roleGuard permite roles listados y redirige a los demás', () => {
     sessionAs('employee');
     setup();
-    expect(asUrl(run(roleGuard('admin', 'superadmin')))).toBe('/inicio');
+    // El inicio del empleado es la pantalla de venta.
+    expect(asUrl(run(roleGuard('admin', 'superadmin')))).toBe('/venta');
 
     TestBed.resetTestingModule();
     sessionAs('admin');
