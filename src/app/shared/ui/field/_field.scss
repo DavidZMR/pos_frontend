@@ -1,0 +1,106 @@
+// Estructura compartida de campos (label · control · ayuda/error). Se usa con @use desde cada control.
+
+@mixin field-shell {
+  :host {
+    display: block;
+    min-width: 0;
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .label {
+    display: inline-flex;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .req {
+    color: var(--danger);
+  }
+
+  .control {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: var(--control-h-md);
+    padding-inline: var(--space-3);
+    background: var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      border-color: var(--ink-faint);
+    }
+
+    &:focus-within {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+
+    &.control--invalid {
+      border-color: var(--danger);
+
+      &:focus-within {
+        box-shadow: 0 0 0 3px var(--danger-soft);
+      }
+    }
+
+    &.control--disabled {
+      background: var(--surface-sunken);
+      color: var(--ink-muted);
+      cursor: not-allowed;
+    }
+  }
+
+  .native {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: var(--text-md);
+
+    &::placeholder {
+      color: var(--ink-faint);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  .lead,
+  .affix {
+    color: var(--ink-muted);
+    flex: none;
+  }
+
+  .affix {
+    font-size: var(--text-sm);
+  }
+
+  .hint,
+  .error {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+  }
+
+  .hint {
+    color: var(--ink-muted);
+  }
+
+  .error {
+    color: var(--danger);
+    font-weight: 500;
+  }
+}

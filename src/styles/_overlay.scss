@@ -1,0 +1,37 @@
+@use '@angular/cdk';
+
+// Estructura base de overlays del CDK (posicionamiento, contenedores).
+@include cdk.overlay();
+
+.cdk-overlay-backdrop.pos-backdrop {
+  background: var(--backdrop);
+}
+
+.cdk-overlay-backdrop.pos-backdrop.cdk-overlay-backdrop-showing {
+  opacity: 1;
+}
+
+/* Panel de diálogo: superficie elevada; la sombra solo existe en capas flotantes. */
+.pos-dialog-panel {
+  max-height: calc(100dvh - 2 * var(--space-6));
+  display: flex;
+}
+
+.pos-dialog-panel .cdk-dialog-container {
+  width: 100%;
+  display: flex;
+  outline: none;
+  background: var(--surface-raised);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  animation: pos-dialog-in var(--dur) var(--ease-out);
+}
+
+@keyframes pos-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}

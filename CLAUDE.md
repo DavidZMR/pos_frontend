@@ -30,7 +30,10 @@ scripts/         stage-backend, verificación de empaquetado
 ## Reglas del proyecto
 - **Un solo origen del API**: `ConfigService.apiUrl` (en Electron viene de `window.pos.config`, en navegador de `public/config.json`/default). Nunca URLs hardcodeadas en servicios.
 - Dinero: el API manda/recibe centavos enteros. Mostrar con `MoneyPipe`, capturar con `pos-money-input` (emite centavos). Cantidades con `QtyPipe` / `pos-qty-input` según `unit`.
-- Estilos: solo tokens CSS (`var(--color-...)`, `var(--space-...)`). **Sin degradados**, sin colores sueltos en componentes, bordes de 1px en vez de sombras pesadas, números con `tabular-nums`.
+- Estilos: solo alias de tokens (`var(--surface)`, `var(--brand)`, `var(--space-4)`… ver skill `pos-ui-kit`). **Sin degradados**, sin colores sueltos en componentes, bordes de 1px en vez de sombras pesadas, números con `tabular-nums`. Muestrario en `/kit` (solo desarrollo).
+- Formularios: Signal Forms (`form`, `[formField]`, `submit`). Los controles `pos-input`/`pos-select`/`pos-toggle` implementan `FormValueControl`/`FormCheckboxControl`; los modelos nunca usan `null` (usa `''`, `0`, `false`).
+- Utilidades compartidas con el backend en `shared/utils` (`decimal`, `money`, `qty`, `text`): copias idénticas de `pos_backend/src/common/utils`; formateo de pantalla en `format.ts`.
+- Archivos con acentos: edítalos con el editor o Node, **no** con `Get-Content`/`-replace` de PowerShell 5.1 (rompe UTF-8).
 - Antes de crear un componente visual, revisa si ya existe uno `pos-*` en `shared/ui`.
 - Tablas siempre con `pos-table`; diálogos con `pos-dialog`/`ConfirmService`; avisos con `ToastService`.
 - Permisos en UI: rutas con `roleGuard`, menú filtrado por rol. La UI oculta, el backend decide.
