@@ -158,3 +158,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.print-status {
+  margin-top: var(--space-3);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}

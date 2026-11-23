@@ -7,6 +7,7 @@ import { PosButton, PosDialog, PosTextarea, ToastService } from '../../../shared
 import { PosApi } from '../pos-api';
 import { type Sale, saleFolio } from '../pos-models';
 import { PosSaleTicket } from '../sale-ticket';
+import { TicketPrinter } from '../ticket/ticket-printer';
 
 /** Detalle de una venta; el admin puede cancelarla (regresa la mercancía al inventario). */
 @Component({
@@ -39,6 +40,17 @@ import { PosSaleTicket } from '../sale-ticket';
       }
 
       <ng-container dialogActions>
+        @if (tickets.ready() && !cancelling()) {
+          <button
+            posButton
+            variant="secondary"
+            icon="printer"
+            [loading]="printing()"
+            (click)="print()"
+          >
+            Reimprimir
+          </button>
+        }
         @if (canCancel() && !cancelling()) {
           <button posButton variant="danger" icon="x" (click)="cancelling.set(true)">
             Cancelar venta
@@ -78,6 +90,8 @@ export class SaleDetailDialog {
   private readonly api = inject(PosApi);
   private readonly auth = inject(AuthStore);
   private readonly toast = inject(ToastService);
+  protected readonly tickets = inject(TicketPrinter);
+  protected readonly printing = signal(false);
 
   protected readonly sale = signal(inject<Sale>(DIALOG_DATA));
   protected readonly folio = saleFolio(this.sale().folio);
@@ -98,6 +112,15 @@ export class SaleDetailDialog {
     minLength(s.reason, 3, { message: 'Mínimo 3 caracteres' });
     maxLength(s.reason, 200, { message: 'Máximo 200 caracteres' });
   });
+
+  protected async print(): Promise<void> {
+    this.printing.set(true);
+    try {
+      await this.tickets.printSale(this.sale(), { reprint: true });
+    } finally {
+      this.printing.set(false);
+    }
+  }
 
   protected confirmCancel(): void {
     void submit(this.cancelForm, async () => {

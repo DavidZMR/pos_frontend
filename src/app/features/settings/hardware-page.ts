@@ -1,34 +1,56 @@
 import { Component, inject, resource } from '@angular/core';
 import { HardwareConfigService } from '../../core/hardware/hardware-config';
-import { PosCard, PosEmptyState, PosPageHeader, PosSpinner } from '../../shared/ui';
+import {
+  PosBusinessGate,
+  PosCard,
+  PosEmptyState,
+  PosPageHeader,
+  PosSpinner,
+} from '../../shared/ui';
+import { PosPrinterSettings } from './printer-settings';
 import { PosScaleSettings } from './scale-settings';
+import { PosTicketSettings } from './ticket-settings';
 
-/** Equipo de ESTA computadora (báscula; impresora en la siguiente entrega). */
+/** Equipo de ESTA computadora (báscula, impresora) y datos del ticket del negocio. */
 @Component({
   selector: 'pos-hardware-page',
-  imports: [PosCard, PosEmptyState, PosPageHeader, PosSpinner, PosScaleSettings],
+  imports: [
+    PosBusinessGate,
+    PosCard,
+    PosEmptyState,
+    PosPageHeader,
+    PosSpinner,
+    PosPrinterSettings,
+    PosScaleSettings,
+    PosTicketSettings,
+  ],
   template: `
     <pos-page-header
       eyebrow="Administración"
       heading="Equipo de esta PC"
-      description="Báscula de esta computadora. Cada caja se configura por separado y todo es opcional."
+      description="Báscula e impresora de esta computadora (cada caja se configura por separado; todo es opcional) y los datos que salen en el ticket."
     />
 
-    @if (!hardware.supported) {
-      <pos-card>
-        <pos-empty-state
-          icon="settings"
-          heading="Solo en la app de escritorio"
-          message="La báscula se configura desde PuntoVenta instalado en la computadora de la caja. En el navegador el peso se escribe a mano."
-        />
-      </pos-card>
-    } @else if (config.isLoading()) {
-      <div class="center"><pos-spinner [size]="28" label="Cargando configuración" /></div>
-    } @else if (config.value(); as current) {
-      <div class="sections">
+    <div class="sections">
+      @if (!hardware.supported) {
+        <pos-card>
+          <pos-empty-state
+            icon="settings"
+            heading="Báscula e impresora: solo en la app de escritorio"
+            message="Se configuran desde PuntoVenta instalado en la computadora de la caja. En el navegador el peso se escribe a mano y no se imprimen tickets."
+          />
+        </pos-card>
+      } @else if (config.isLoading()) {
+        <div class="center"><pos-spinner [size]="28" label="Cargando configuración" /></div>
+      } @else if (config.value(); as current) {
         <pos-scale-settings [config]="current.scale" />
-      </div>
-    }
+        <pos-printer-settings />
+      }
+
+      <pos-business-gate>
+        <pos-ticket-settings />
+      </pos-business-gate>
+    </div>
   `,
   styles: `
     .center {
