@@ -1,0 +1,270 @@
+:host {
+  display: block;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(24rem, 5fr);
+  min-height: 100dvh;
+}
+
+/* ---- Carta náutica ------------------------------------------------------ */
+.chart {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-inverse);
+  color: var(--ink-inverse);
+}
+
+.chart-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.graticule line {
+  stroke: var(--line-inverse);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.isobaths path {
+  fill: none;
+  stroke: var(--line-inverse);
+  stroke-width: 1.2;
+
+  &.major {
+    stroke: var(--ink-inverse-muted);
+    stroke-width: 1.4;
+    opacity: 0.5;
+  }
+}
+
+.depths text {
+  fill: var(--ink-inverse-muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: var(--surface-inverse);
+  stroke-width: 6px;
+  opacity: 0.8;
+}
+
+.route {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 2 7;
+  stroke-linecap: round;
+  animation: route-draw 2.4s var(--ease-out) both;
+}
+
+.anchor {
+  fill: var(--accent);
+}
+
+.anchor-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  opacity: 0.6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring 2.8s var(--ease-out) infinite;
+}
+
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 600;
+    opacity: 0;
+  }
+}
+
+@keyframes ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.chart-copy {
+  position: absolute;
+  left: clamp(var(--space-6), 6vw, var(--space-12));
+  bottom: clamp(var(--space-7), 8vh, var(--space-12));
+  display: grid;
+  gap: var(--space-4);
+  max-width: 34rem;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  background: var(--brand);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-stretch: 72%;
+  font-size: var(--text-display);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+
+  b {
+    font-weight: 800;
+  }
+}
+
+.tagline {
+  max-width: 30ch;
+  font-size: var(--text-lg);
+  line-height: 1.45;
+  color: var(--ink-inverse-muted);
+}
+
+/* ---- Panel del formulario ---------------------------------------------- */
+.panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-8) clamp(var(--space-6), 5vw, var(--space-11));
+  background: var(--surface);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 24rem;
+  margin-block: auto;
+  margin-inline: auto;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin-bottom: var(--space-4);
+  color: var(--ink-muted);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+  color: var(--danger-hover);
+  font-size: var(--text-sm);
+  font-weight: 500;
+
+  pos-icon {
+    margin-top: 1px;
+  }
+}
+
+.fields {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ink-faint);
+
+  &.online {
+    background: var(--success);
+  }
+
+  &.no-db {
+    background: var(--warning);
+  }
+
+  &.offline {
+    background: var(--danger);
+  }
+
+  &.checking {
+    animation: blink 1.2s var(--ease-inout) infinite;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.version {
+  margin-inline-start: auto;
+  color: var(--ink-faint);
+}
+
+/* ---- Pantallas angostas: la carta se vuelve una franja ------------------ */
+@media (max-width: 60rem) {
+  .login {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .chart {
+    min-height: 13rem;
+  }
+
+  .chart-copy {
+    left: var(--space-5);
+    bottom: var(--space-5);
+    gap: var(--space-2);
+  }
+
+  .mark {
+    display: none;
+  }
+
+  .wordmark {
+    font-size: var(--text-3xl);
+  }
+
+  .tagline {
+    font-size: var(--text-sm);
+  }
+
+  .panel {
+    padding: var(--space-7) var(--space-5);
+  }
+}

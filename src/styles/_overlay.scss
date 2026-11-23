@@ -29,6 +29,15 @@
   animation: pos-dialog-in var(--dur) var(--ease-out);
 }
 
+/* El componente abierto ocupa todo el panel (si no, el pie no llega al borde). */
+.pos-dialog-panel .cdk-dialog-container > * {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  max-height: inherit;
+}
+
 @keyframes pos-dialog-in {
   from {
     opacity: 0;

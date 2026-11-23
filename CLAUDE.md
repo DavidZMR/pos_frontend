@@ -37,6 +37,11 @@ scripts/         stage-backend, verificación de empaquetado
 - Antes de crear un componente visual, revisa si ya existe uno `pos-*` en `shared/ui`.
 - Tablas siempre con `pos-table`; diálogos con `pos-dialog`/`ConfirmService`; avisos con `ToastService`.
 - Permisos en UI: rutas con `roleGuard`, menú filtrado por rol. La UI oculta, el backend decide.
+- **Pantalla nueva**: ruta lazy en `app.routes.ts` (dentro del shell, con `canMatch: [roleGuard(...)]`) + entrada en `layout/nav.ts` con los mismos roles.
+- **Listados**: `httpResource(() => ({ url, params }), { parse: toPage })`; filtros como signals, búsqueda con `debounced()`, página con `linkedSignal` que vuelve a 1 al cambiar filtros; `pos-table` + clases globales `.pos-filters`, `.cell-stack`, `.row-actions`.
+- **Mutaciones**: servicio `XxxApi` con `firstValueFrom(http.post/patch(...))` + `unwrap`. Formularios en diálogo (`DialogService.open`) con Signal Forms; en `submit()` devolver `serverFieldErrors(toApiError(e), { campo: form.campo })` para pintar errores del backend en cada campo.
+- **Sesión**: `AuthStore` (token/usuario/negocio en signals + localStorage). El superadmin elige negocio en la barra superior (`BusinessContext`), que viaja como `x-business-id` (interceptor). 401 del API ⇒ logout automático.
+- **Pruebas E2E**: backend con `MONGODB_URI=mongodb://127.0.0.1:27017/pos_e2e` (MongoDB local, nunca Atlas) + `ng serve`; Playwright con la skill `webapp-testing`.
 - Hardware vía `window.pos` (preload). Si no existe (navegador) o no está configurado, la función se degrada: cantidad manual, sin impresión.
 - Textos de UI en español.
 

@@ -1,0 +1,40 @@
+/* Utilidades de maquetación compartidas por las pantallas de listado. */
+
+/* Barra de filtros sobre una tabla: búsqueda flexible + selects de ancho fijo. */
+.pos-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+
+  > .grow {
+    flex: 1 1 18rem;
+  }
+
+  > :not(.grow) {
+    flex: 0 1 13rem;
+  }
+}
+
+/* Celda con texto principal y secundario (nombre + detalle). */
+.cell-stack {
+  display: grid;
+  gap: 2px;
+
+  .primary {
+    font-weight: 600;
+  }
+
+  .secondary {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+}
+
+/* Acciones de fila alineadas a la derecha. */
+.row-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}

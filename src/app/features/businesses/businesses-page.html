@@ -1,0 +1,73 @@
+<pos-page-header
+  heading="Negocios"
+  description="Cada negocio tiene sus propios usuarios, productos, ventas y reportes."
+>
+  <button posButton icon="plus" headerActions (click)="openForm()">Nuevo negocio</button>
+</pos-page-header>
+
+<div class="pos-filters">
+  <pos-input
+    class="grow"
+    label="Buscar"
+    icon="search"
+    type="search"
+    placeholder="Nombre del negocio"
+    [(value)]="searchText"
+  />
+  <pos-select label="Estado" [options]="statusOptions" [(value)]="status" />
+</div>
+
+<pos-table
+  caption="Negocios"
+  [columns]="columns"
+  [rows]="rows()"
+  [loading]="businesses.isLoading()"
+  [page]="meta()"
+  (pageChange)="page.set($event)"
+  emptyIcon="store"
+  emptyTitle="Sin negocios"
+  emptyMessage="Da de alta el primer negocio para asignarle administradores y empleados."
+>
+  <button posButton icon="plus" emptyActions (click)="openForm()">Nuevo negocio</button>
+
+  <ng-template posCell="name" [posCellOf]="rows()" let-business>
+    <span class="cell-stack">
+      <span class="primary">{{ business.name }}</span>
+      @if (business.legalName || business.taxId) {
+        <span class="secondary">
+          {{ business.legalName }}{{ business.legalName && business.taxId ? ' · ' : ''
+          }}{{ business.taxId }}
+        </span>
+      }
+    </span>
+  </ng-template>
+
+  <ng-template posCell="status" [posCellOf]="rows()" let-business>
+    <pos-badge [tone]="business.active ? 'success' : 'neutral'">
+      {{ business.active ? 'Activo' : 'Inactivo' }}
+    </pos-badge>
+  </ng-template>
+
+  <ng-template posCell="actions" [posCellOf]="rows()" let-business>
+    <span class="row-actions">
+      <button
+        posButton
+        variant="ghost"
+        size="sm"
+        icon="pencil"
+        iconOnly
+        [attr.aria-label]="'Editar ' + business.name"
+        (click)="openForm(business)"
+      ></button>
+      <button
+        posButton
+        variant="ghost"
+        size="sm"
+        [icon]="business.active ? 'power' : 'refresh'"
+        iconOnly
+        [attr.aria-label]="(business.active ? 'Desactivar ' : 'Reactivar ') + business.name"
+        (click)="toggleActive(business)"
+      ></button>
+    </span>
+  </ng-template>
+</pos-table>

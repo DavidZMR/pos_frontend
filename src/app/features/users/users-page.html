@@ -1,0 +1,87 @@
+<pos-page-header
+  heading="Usuarios"
+  [description]="
+    auth.isSuperadmin()
+      ? 'Administradores y empleados de todos los negocios.'
+      : 'Las personas que pueden entrar a tu negocio.'
+  "
+>
+  <button posButton icon="user-plus" headerActions (click)="openForm()">Nuevo usuario</button>
+</pos-page-header>
+
+<div class="pos-filters">
+  <pos-input
+    class="grow"
+    label="Buscar"
+    icon="search"
+    type="search"
+    placeholder="Nombre o usuario"
+    [(value)]="searchText"
+  />
+  @if (auth.isSuperadmin()) {
+    <pos-select label="Negocio" [options]="businessOptions()" [(value)]="businessFilter" />
+  }
+  <pos-select label="Rol" [options]="roleOptions()" [(value)]="role" />
+  <pos-select label="Estado" [options]="statusOptions" [(value)]="status" />
+</div>
+
+<pos-table
+  caption="Usuarios"
+  [columns]="columns()"
+  [rows]="rows()"
+  [loading]="users.isLoading()"
+  [page]="meta()"
+  (pageChange)="page.set($event)"
+  emptyIcon="users"
+  emptyTitle="Sin usuarios"
+  emptyMessage="No hay usuarios con estos filtros."
+>
+  <ng-template posCell="name" [posCellOf]="rows()" let-user>
+    <span class="cell-stack">
+      <span class="primary">
+        {{ user.name }}
+        @if (isSelf(user)) {
+          <pos-badge tone="brand">Tú</pos-badge>
+        }
+      </span>
+      <span class="secondary">&#64;{{ user.username }}</span>
+    </span>
+  </ng-template>
+
+  <ng-template posCell="role" [posCellOf]="rows()" let-user>
+    <pos-badge [tone]="roleTone[user.role]">{{ roleLabels[user.role] }}</pos-badge>
+  </ng-template>
+
+  <ng-template posCell="status" [posCellOf]="rows()" let-user>
+    <pos-badge [tone]="user.active ? 'success' : 'neutral'">
+      {{ user.active ? 'Activo' : 'Inactivo' }}
+    </pos-badge>
+  </ng-template>
+
+  <ng-template posCell="actions" [posCellOf]="rows()" let-user>
+    @if (canManage(user)) {
+      <span class="row-actions">
+        <button
+          posButton
+          variant="ghost"
+          size="sm"
+          icon="pencil"
+          iconOnly
+          [attr.aria-label]="'Editar ' + user.name"
+          (click)="openForm(user)"
+        ></button>
+        @if (!isSelf(user)) {
+          <button
+            posButton
+            variant="ghost"
+            size="sm"
+            [icon]="user.active ? 'power' : 'refresh'"
+            iconOnly
+            [attr.aria-label]="(user.active ? 'Desactivar ' : 'Reactivar ') + user.name"
+            (click)="toggleActive(user)"
+          ></button>
+        }
+      </span>
+    }
+  </ng-template>
+</pos-table>

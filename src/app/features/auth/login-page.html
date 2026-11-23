@@ -1,0 +1,91 @@
+<div class="login">
+  <section class="chart">
+    <svg
+      class="chart-art"
+      viewBox="0 0 900 900"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g class="graticule">
+        @for (x of [150, 300, 450, 600, 750]; track x) {
+          <line [attr.x1]="x" y1="0" [attr.x2]="x" y2="900" />
+        }
+        @for (y of [150, 300, 450, 600, 750]; track y) {
+          <line x1="0" [attr.y1]="y" x2="900" [attr.y2]="y" />
+        }
+      </g>
+      <g class="isobaths">
+        @for (line of isobaths; track $index) {
+          <path [attr.d]="line.d" [class.major]="line.major" />
+        }
+      </g>
+      <g class="depths">
+        @for (line of isobaths; track $index) {
+          @if (line.label; as label) {
+            <text [attr.x]="label.x" [attr.y]="label.y">{{ label.text }}</text>
+          }
+        }
+      </g>
+      <path class="route" [attr.d]="route.d" />
+      <circle class="anchor-ring" [attr.cx]="route.end.x" [attr.cy]="route.end.y" r="14" />
+      <circle class="anchor" [attr.cx]="route.end.x" [attr.cy]="route.end.y" r="5" />
+    </svg>
+
+    <div class="chart-copy">
+      <span class="mark"><pos-icon name="waves" [size]="26" [strokeWidth]="2" /></span>
+      <p class="wordmark">Punto<b>Venta</b></p>
+      <p class="tagline">
+        Caja, almacén y reportes: del primer kilo de la mañana al corte de la noche.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <form class="card" novalidate (submit)="signIn(); $event.preventDefault()">
+      <p class="eyebrow">Bienvenido</p>
+      <h1 class="title">Inicia sesión</h1>
+      <p class="lead">Usa el usuario y la contraseña que te dio tu administrador.</p>
+
+      @if (errorMessage()) {
+        <div class="alert" role="alert">
+          <pos-icon name="alert" [size]="18" />
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="fields">
+        <pos-input
+          label="Usuario"
+          icon="user"
+          autocomplete="username"
+          [formField]="loginForm.username"
+        />
+        <pos-input
+          label="Contraseña"
+          type="password"
+          icon="lock"
+          autocomplete="current-password"
+          [formField]="loginForm.password"
+        />
+      </div>
+
+      <button
+        posButton
+        type="submit"
+        size="lg"
+        trailingIcon="chevron-right"
+        block
+        [loading]="submitting()"
+      >
+        Entrar
+      </button>
+    </form>
+
+    <footer class="status">
+      <span class="dot" [class]="'dot ' + connection()" aria-hidden="true"></span>
+      <span role="status">{{ connectionText() }}</span>
+      <span class="version">v{{ config.appVersion }}</span>
+    </footer>
+  </section>
+</div>
