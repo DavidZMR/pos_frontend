@@ -49,6 +49,8 @@ scripts/         stage-backend, verificación de empaquetado
 - **Hardware** vía `window.pos` (preload, tipos en `core/config/pos-bridge.ts`). Si no existe (navegador) o no está configurado, se degrada: peso escrito a mano, sin impresión.
   - Báscula: `ScaleStore` (signals `status`/`reading` en gramos enteros). En la captura de peso (`QtyDialog`), solo productos por **kg**: con báscula conectada el campo sigue la lectura y solo agrega con peso **estable**; si el cajero escribe, manda lo escrito (`weighed: false`). Sin báscula: se escribe el peso. **Nunca** un modo simulado en la app.
   - Configuración por PC en `/equipo` (admin). Lógica serial en `electron/lib/scale/`, probada con `npm run test:electron` (`SerialPortMock`).
+  - Impresora: `PrinterStore` (`ready` = configurada **e** instalada en Windows). Tickets como HTML puro en `features/pos/ticket/ticket-html.ts` (escapar todo dato; 58/80 mm, negro); `TicketPrinter` los imprime (venta con F9 o automático, reimpresión, corte). Si no hay impresora, no se ofrece imprimir.
+  - Datos del ticket (nombre, RFC, dirección, encabezado, pie) en `/equipo` → `PATCH /businesses/current`, con vista previa en `<iframe sandbox="">`.
 - Textos de UI en español.
 
 ---
