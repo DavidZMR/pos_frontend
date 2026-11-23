@@ -1,8 +1,10 @@
-// Hardware de esta PC (báscula; impresora en lib/printer) expuesto a la ventana por IPC.
+// Hardware de esta PC (báscula e impresora) expuesto a la ventana por IPC.
 // Todo es opcional: si el controlador serial no carga o no hay báscula, la app sigue
 // funcionando y el cajero escribe el peso.
 const { ipcMain } = require('electron');
-const { sanitizeScale, saveConfig } = require('./config-store.cjs');
+const { sanitizePrinter, sanitizeScale, saveConfig } = require('./config-store.cjs');
+const { createPrintQueue } = require('./print-queue.cjs');
+const { listPrinters, printHtml } = require('./printer.cjs');
 const { detectScale } = require('./scale/detect.cjs');
 const { ScaleService } = require('./scale/scale-service.cjs');
 
@@ -109,6 +111,36 @@ function setupHardware({ config, userDataDir, log, getWindow, isTrustedSender })
       detecting = false;
       scale.configure(current.scale);
     }
+  });
+
+  // ---- Impresora ----
+  const enqueue = createPrintQueue();
+
+  handle('printer:list', (event) => listPrinters(event.sender));
+
+  handle('printer:save-config', (_event, input) => {
+    const next = sanitizePrinter(input);
+    persist({ ...current, printer: next });
+    log.info(
+      next.name
+        ? `Impresora de tickets: "${next.name}" (${next.widthMm} mm, auto=${next.autoPrint})`
+        : 'Sin impresora de tickets',
+    );
+    return next;
+  });
+
+  /** Imprime en la impresora configurada; la ventana solo manda el HTML del ticket. */
+  handle('printer:print', async (event, job) => {
+    const { name, widthMm, copies } = current.printer;
+    if (!name) return { ok: false, error: 'No hay impresora de tickets configurada' };
+    const html = typeof job?.html === 'string' ? job.html : '';
+    if (!html || html.length > 500_000)
+      return { ok: false, error: 'Ticket vacío o demasiado grande' };
+    const installed = await listPrinters(event.sender);
+    if (!installed.some((p) => p.name === name)) {
+      return { ok: false, error: `La impresora "${name}" no está conectada o instalada` };
+    }
+    return enqueue(() => printHtml({ html, deviceName: name, widthMm, copies, log }));
   });
 
   return {

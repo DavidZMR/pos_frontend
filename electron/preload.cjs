@@ -32,4 +32,9 @@ contextBridge.exposeInMainWorld('pos', {
     onReading: (callback) => subscribe('scale:reading', callback),
     onDetectProgress: (callback) => subscribe('scale:detect-progress', callback),
   },
+  printer: {
+    list: () => ipcRenderer.invoke('printer:list'),
+    saveConfig: (printer) => ipcRenderer.invoke('printer:save-config', printer),
+    print: (job) => ipcRenderer.invoke('printer:print', job),
+  },
 });
