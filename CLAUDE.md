@@ -43,7 +43,8 @@ scripts/         stage-backend, verificación de empaquetado
 - **Listados**: `httpResource(() => ({ url, params }), { parse: toPage })`; filtros como signals, búsqueda con `debounced()`, página con `linkedSignal` que vuelve a 1 al cambiar filtros; `pos-table` + clases globales `.pos-filters`, `.cell-stack`, `.row-actions`.
 - **Mutaciones**: servicio `XxxApi` con `firstValueFrom(http.post/patch(...))` + `unwrap`. Formularios en diálogo (`DialogService.open`) con Signal Forms; en `submit()` devolver `serverFieldErrors(toApiError(e), { campo: form.campo })` para pintar errores del backend en cada campo.
 - **Sesión**: `AuthStore` (token/usuario/negocio en signals + localStorage). El superadmin elige negocio en la barra superior (`BusinessContext`), que viaja como `x-business-id` (interceptor). 401 del API ⇒ logout automático.
-- **Pruebas E2E**: backend con `MONGODB_URI=mongodb://127.0.0.1:27017/pos_e2e` (MongoDB local, nunca Atlas) + `ng serve`; Playwright con la skill `webapp-testing`.
+- **Pantallas por negocio** (catálogo, almacén, ventas): envolver en `<pos-business-gate>` y en cada `httpResource` devolver `undefined` si `!context.scope()` (así no pide datos sin negocio y recarga al cambiar de negocio). Listas pequeñas compartidas (categorías, proveedores) en `CatalogLookups`.
+- **Pruebas E2E**: backend con `npm run dev:memory -- --seed` en `pos_backend` (replica set en memoria + marisquería demo; usuarios `demo.root`/`demo.admin`/`demo.caja`, clave `Demo12345`; nunca Atlas) + `ng serve`; Playwright con la skill `webapp-testing`. Reiniciar el backend entre corridas para datos limpios. Si `ng serve` no ve archivos NUEVOS, reiniciarlo.
 - Hardware vía `window.pos` (preload). Si no existe (navegador) o no está configurado, la función se degrada: cantidad manual, sin impresión.
 - Textos de UI en español.
 

@@ -1,0 +1,124 @@
+<pos-page-header
+  eyebrow="Almacén"
+  heading="Existencias"
+  description="Cuánto tienes, cuánto vale a costo promedio y qué se está acabando."
+>
+  <a posButton icon="truck" headerActions routerLink="/almacen/entradas/nueva">Registrar entrada</a>
+</pos-page-header>
+
+<pos-business-gate>
+  <section class="tiles" aria-label="Resumen del almacén">
+    <pos-stat-tile
+      label="Valor del inventario"
+      icon="warehouse"
+      [value]="tiles().value"
+      detail="Existencia × costo promedio"
+    />
+    <pos-stat-tile
+      label="Productos activos"
+      icon="package"
+      tone="neutral"
+      [value]="tiles().products"
+    />
+    <pos-stat-tile
+      label="Bajo mínimo"
+      icon="alert"
+      tone="warning"
+      [value]="tiles().low"
+      detail="Conviene resurtir"
+    />
+    <pos-stat-tile
+      label="Agotados"
+      icon="inbox"
+      [tone]="tiles().negative ? 'danger' : 'neutral'"
+      [value]="tiles().out"
+      [detail]="tiles().negative ? tiles().negative + ' con existencia negativa' : 'Sin existencia'"
+    />
+  </section>
+
+  <div class="pos-filters">
+    <pos-input
+      class="grow"
+      label="Buscar"
+      icon="search"
+      type="search"
+      placeholder="Código, código de barras o nombre"
+      [(value)]="searchText"
+    />
+    <pos-select label="Categoría" [options]="categoryFilterOptions()" [(value)]="categoryId" />
+    <pos-select label="Existencia" [options]="stockOptions" [(value)]="stockFilter" />
+  </div>
+
+  <pos-table
+    caption="Existencias"
+    sortMode="server"
+    [columns]="columns"
+    [rows]="rows()"
+    [loading]="products.isLoading()"
+    [page]="meta()"
+    [(sort)]="sort"
+    (pageChange)="page.set($event)"
+    emptyIcon="warehouse"
+    emptyTitle="Sin productos"
+    emptyMessage="No hay productos activos con estos filtros."
+  >
+    <ng-template posCell="code" [posCellOf]="rows()" let-product>
+      <span class="num code">{{ product.code }}</span>
+    </ng-template>
+    <ng-template posCell="name" [posCellOf]="rows()" let-product>
+      <span class="cell-stack">
+        <span class="primary">{{ product.name }}</span>
+        <span class="secondary">{{
+          lookups.categoryName(product.categoryId) || 'Sin categoría'
+        }}</span>
+      </span>
+    </ng-template>
+    <ng-template posCell="stock" [posCellOf]="rows()" let-product>
+      <span class="cell-stack stock">
+        <span class="primary num">{{ product.stock | qty: product.unit }}</span>
+        @if (stockStatus(product); as st) {
+          @if (st !== 'ok') {
+            <pos-badge [tone]="stockTone[st]">{{ stockLabel[st] }}</pos-badge>
+          }
+        }
+      </span>
+    </ng-template>
+    <ng-template posCell="minStock" [posCellOf]="rows()" let-product>
+      <span class="num muted">
+        {{ product.minStock > 0 ? (product.minStock | qty: product.unit) : '—' }}
+      </span>
+    </ng-template>
+    <ng-template posCell="costCents" [posCellOf]="rows()" let-product>
+      <span class="num">{{ product.costCents | money }}</span>
+    </ng-template>
+    <ng-template posCell="value" [posCellOf]="rows()" let-product>
+      <span class="num"
+        ><strong>{{ value(product) | money }}</strong></span
+      >
+    </ng-template>
+    <ng-template posCell="actions" [posCellOf]="rows()" let-product>
+      <span class="row-actions">
+        <button
+          posButton
+          variant="secondary"
+          size="sm"
+          icon="scale"
+          [attr.aria-label]="'Ajustar existencia de ' + product.name"
+          (click)="adjust(product)"
+        >
+          Ajustar
+        </button>
+        <a
+          posButton
+          variant="ghost"
+          size="sm"
+          icon="arrow-left-right"
+          iconOnly
+          routerLink="/almacen/movimientos"
+          [queryParams]="{ producto: product.id }"
+          [attr.aria-label]="'Movimientos de ' + product.name"
+        ></a>
+      </span>
+    </ng-template>
+  </pos-table>
+</pos-business-gate>

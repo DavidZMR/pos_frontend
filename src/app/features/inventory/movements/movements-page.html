@@ -1,0 +1,90 @@
+<pos-page-header
+  eyebrow="Almacén"
+  heading="Movimientos (kárdex)"
+  description="Cada entrada, venta y ajuste de existencia, con lo que quedó después."
+/>
+
+<pos-business-gate>
+  <div class="pos-filters">
+    @if (product(); as selected) {
+      <div class="grow chip-label">
+        Producto
+        <span class="chip">
+          <span class="num code">{{ selected.code }}</span>
+          {{ selected.name }}
+          <button
+            posButton
+            variant="ghost"
+            size="sm"
+            icon="x"
+            iconOnly
+            type="button"
+            aria-label="Quitar filtro de producto"
+            (click)="clearProduct()"
+          ></button>
+        </span>
+      </div>
+    } @else {
+      <pos-autocomplete
+        class="grow"
+        label="Producto"
+        placeholder="Todos — busca uno por código o nombre"
+        [search]="searchProducts"
+        (selected)="selectProduct($event)"
+      >
+        <ng-template posOption [posOptionOf]="productSample" let-p>
+          <span class="option">
+            <span class="num code">{{ p.code }}</span>
+            {{ p.name }}
+          </span>
+        </ng-template>
+      </pos-autocomplete>
+    }
+    <pos-select label="Movimiento" [options]="typeOptions" [(value)]="type" />
+    <pos-input label="Desde" type="date" [(value)]="from" />
+    <pos-input label="Hasta" type="date" [(value)]="to" />
+  </div>
+
+  <pos-table
+    caption="Movimientos de inventario"
+    [columns]="columns"
+    [rows]="rows()"
+    [loading]="movements.isLoading()"
+    [page]="meta()"
+    (pageChange)="page.set($event)"
+    emptyIcon="arrow-left-right"
+    emptyTitle="Sin movimientos"
+    emptyMessage="No hay movimientos con estos filtros."
+  >
+    <ng-template posCell="product" [posCellOf]="rows()" let-m>
+      <span class="cell-stack">
+        <span class="primary">{{ m.productName }}</span>
+        <span class="secondary num">{{ m.productCode }}</span>
+      </span>
+    </ng-template>
+    <ng-template posCell="type" [posCellOf]="rows()" let-m>
+      <span class="cell-stack">
+        <pos-badge [tone]="movementLabel[m.type].tone">
+          {{ movementLabel[m.type].label }}{{ m.refFolio ? ' ' + m.refFolio : '' }}
+        </pos-badge>
+        @if (m.reason || m.note) {
+          <span class="secondary">
+            {{ m.reason ? reasonLabel[m.reason] : '' }}{{ m.reason && m.note ? ' · ' : ''
+            }}{{ m.note }}
+          </span>
+        }
+      </span>
+    </ng-template>
+    <ng-template posCell="qtyBase" [posCellOf]="rows()" let-m>
+      <span class="num" [class.qty-in]="m.qtyBase > 0" [class.qty-out]="m.qtyBase < 0">
+        {{ m.qtyBase > 0 ? '+' : '−' }}{{ (m.qtyBase < 0 ? -m.qtyBase : m.qtyBase) | qty: m.unit }}
+      </span>
+    </ng-template>
+    <ng-template posCell="stockAfter" [posCellOf]="rows()" let-m>
+      <span class="num">{{ m.stockAfter | qty: m.unit }}</span>
+    </ng-template>
+    <ng-template posCell="unitCostCents" [posCellOf]="rows()" let-m>
+      <span class="num muted">{{ m.unitCostCents | money }}</span>
+    </ng-template>
+  </pos-table>
+</pos-business-gate>

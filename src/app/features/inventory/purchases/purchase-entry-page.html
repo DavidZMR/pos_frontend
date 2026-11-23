@@ -1,0 +1,155 @@
+<pos-page-header
+  eyebrow="Almacén · Entradas"
+  heading="Registrar entrada de mercancía"
+  description="Sube la existencia, actualiza el costo promedio y, si quieres, el precio de venta."
+>
+  <a posButton variant="ghost" icon="chevron-left" headerActions routerLink="/almacen/entradas">
+    Volver
+  </a>
+</pos-page-header>
+
+<pos-business-gate>
+  <div class="layout">
+    <div class="main">
+      <pos-card>
+        <pos-autocomplete
+          label="Agregar producto"
+          placeholder="Escribe o escanea código, código de barras o nombre…"
+          hint="Enter agrega el primero de la lista. Enter en la cantidad regresa aquí."
+          icon="barcode"
+          [search]="searchProducts"
+          (selected)="addProduct($event)"
+        >
+          <ng-template posOption [posOptionOf]="productSample" let-product>
+            <span class="option">
+              <span class="num code">{{ product.code }}</span>
+              <span class="option-name">{{ product.name }}</span>
+              <span class="option-meta num">
+                {{ product.stock | qty: product.unit }} · costo {{ product.costCents | money }}
+              </span>
+            </span>
+          </ng-template>
+        </pos-autocomplete>
+      </pos-card>
+
+      <section class="lines" aria-label="Productos de la entrada">
+        @for (line of entryForm.items; track line().value().productId; let i = $index) {
+          <article class="line" (keydown.enter)="nextProduct($event)">
+            <header class="line-head">
+              <div class="line-title">
+                <span class="num code">{{ line().value().code }}</span>
+                <h3 class="line-name">{{ line().value().name }}</h3>
+              </div>
+              <span class="line-stock">
+                Existencia actual
+                <strong class="num">{{ line().value().stock | qty: line().value().unit }}</strong>
+              </span>
+              <button
+                posButton
+                variant="ghost"
+                size="sm"
+                icon="trash"
+                iconOnly
+                type="button"
+                [attr.aria-label]="'Quitar ' + line().value().name"
+                (click)="removeLine(i)"
+              ></button>
+            </header>
+
+            <div class="line-grid">
+              <pos-qty-input
+                label="Cantidad"
+                [unit]="line().value().unit"
+                [formField]="line.qtyBase"
+              />
+              <pos-money-input
+                [label]="'Costo por ' + units[line().value().unit].label"
+                [hint]="'Antes ' + (line().value().currentCostCents | money)"
+                [formField]="line.unitCostCents"
+              />
+              <pos-money-input
+                [label]="'Precio de venta por ' + units[line().value().unit].label"
+                [hint]="
+                  line().value().newSalePriceCents !== line().value().currentSalePriceCents
+                    ? 'Antes ' + (line().value().currentSalePriceCents | money)
+                    : 'Sin cambio'
+                "
+                [formField]="line.newSalePriceCents"
+              />
+              <div class="line-total">
+                <span class="line-total-label">Subtotal</span>
+                <strong class="num">{{ lineTotal(line().value()) | money }}</strong>
+                <span class="line-flags">
+                  @if (line().value().newSalePriceCents !== line().value().currentSalePriceCents) {
+                    <pos-badge tone="brand">Nuevo precio</pos-badge>
+                  }
+                  @if (margin(line().value()); as m) {
+                    <span class="margin num">margen {{ m }} %</span>
+                  }
+                </span>
+              </div>
+            </div>
+          </article>
+        } @empty {
+          <div class="empty">
+            <pos-empty-state
+              icon="truck"
+              heading="Agrega los productos que llegaron"
+              message="Búscalos arriba por código, código de barras o nombre."
+            />
+          </div>
+        }
+      </section>
+    </div>
+
+    <aside class="side">
+      <pos-card heading="Datos de la entrada">
+        <div class="side-fields">
+          <pos-select
+            label="Proveedor"
+            [options]="supplierOptions()"
+            [formField]="entryForm.supplierId"
+          />
+          <pos-input label="Fecha de compra" type="date" [formField]="entryForm.purchaseDate" />
+          <pos-input
+            label="Factura o nota"
+            placeholder="Opcional"
+            [formField]="entryForm.invoiceNumber"
+          />
+          <pos-textarea label="Observaciones" [rows]="2" [formField]="entryForm.notes" />
+        </div>
+      </pos-card>
+
+      <div class="summary">
+        <dl>
+          <div>
+            <dt>Productos</dt>
+            <dd class="num">{{ totals().lines }}</dd>
+          </div>
+          @if (totals().priceChanges) {
+            <div>
+              <dt>Precios que cambian</dt>
+              <dd class="num">{{ totals().priceChanges }}</dd>
+            </div>
+          }
+          <div class="total">
+            <dt>Total de la compra</dt>
+            <dd class="num">{{ totals().totalCents | money }}</dd>
+          </div>
+        </dl>
+        <button
+          posButton
+          size="lg"
+          icon="check"
+          block
+          type="button"
+          [loading]="saving()"
+          (click)="save()"
+        >
+          Registrar entrada
+        </button>
+        <button posButton variant="ghost" block type="button" (click)="discard()">Descartar</button>
+      </div>
+    </aside>
+  </div>
+</pos-business-gate>
