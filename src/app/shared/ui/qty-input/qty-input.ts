@@ -2,9 +2,11 @@ import {
   Component,
   type ElementRef,
   computed,
+  effect,
   input,
   model,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import type { FormValueControl } from '@angular/forms/signals';
@@ -85,9 +87,28 @@ export class PosQtyInput extends PosFieldBase implements FormValueControl<number
   );
 
   private readonly native = viewChild.required<ElementRef<HTMLInputElement>>('native');
+  /** Último valor que salió de lo tecleado; cualquier otro cambio vino de fuera. */
+  private typed: number | null = null;
+
+  constructor() {
+    super();
+    // Si el valor cambia desde fuera con el campo enfocado (p. ej. la báscula), se muestra y queda
+    // seleccionado: el cajero puede escribir encima para corregirlo.
+    effect(() => {
+      const value = this.value();
+      if (!untracked(this.focused) || value === this.typed) return;
+      const draft = value === 0 ? '' : qtyBaseToDecimalString(value, untracked(this.unit));
+      this.typed = value;
+      this.draft.set(draft);
+      const native = this.native().nativeElement;
+      native.value = draft;
+      native.select();
+    });
+  }
 
   protected onFocus(): void {
     const draft = this.value() === 0 ? '' : qtyBaseToDecimalString(this.value(), this.unit());
+    this.typed = this.value();
     this.draft.set(draft);
     this.focused.set(true);
     // El borrador se escribe YA en el DOM y se selecciona: si se esperara al render, el render
@@ -101,13 +122,17 @@ export class PosQtyInput extends PosFieldBase implements FormValueControl<number
     this.draft.set(raw);
     if (raw.trim() === '') {
       this.parseError.set(false);
+      this.typed = 0;
       this.value.set(0);
       return;
     }
     try {
       const qty = parseQtyToBase(raw, this.unit());
       this.parseError.set(qty < 0);
-      if (qty >= 0) this.value.set(qty);
+      if (qty >= 0) {
+        this.typed = qty;
+        this.value.set(qty);
+      }
     } catch {
       this.parseError.set(true);
     }

@@ -94,6 +94,22 @@ describe('PosQtyInput', () => {
     expect([qty.selectionStart, qty.selectionEnd]).toEqual([0, 5]);
   });
 
+  it('si el valor cambia desde fuera con el campo enfocado (báscula), lo muestra seleccionado', async () => {
+    const { fixture, qty } = await setup();
+    qty.dispatchEvent(new Event('focus'));
+    fixture.componentInstance.model.set({ price: 0, qty: 1250 });
+    await fixture.whenStable();
+    expect(qty.value).toBe('1.250');
+    expect([qty.selectionStart, qty.selectionEnd]).toEqual([0, 5]);
+
+    // Lo tecleado después reemplaza el peso y no se vuelve a pisar.
+    qty.value = '2';
+    qty.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.model().qty).toBe(2000);
+    expect(qty.value).toBe('2');
+  });
+
   it('piezas solo enteras', async () => {
     const { fixture, qty, type } = await setup();
     fixture.componentInstance.unit.set('pz');
