@@ -1,0 +1,21 @@
+@use '../field/field';
+
+@include field.field-shell;
+
+.control {
+  position: relative;
+  padding-inline-end: 0;
+}
+
+.native {
+  appearance: none;
+  padding-inline-end: var(--space-8);
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  pointer-events: none;
+  color: var(--ink-muted);
+}

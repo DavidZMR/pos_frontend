@@ -1,0 +1,119 @@
+// Sistema de diseño "mar frío" — mostrador de lonja al amanecer: acero, hielo picado, agua del Pacífico.
+// Adjetivos: glacial · exacto · de mostrador. Colores planos (sin degradados).
+// Regla: los componentes usan SOLO los alias semánticos (segunda sección), nunca la rampa cruda.
+
+:root {
+  color-scheme: light;
+
+  /* ---- Rampa cruda (neutros teñidos hacia el azul 235) ------------------ */
+  --c-abyss: oklch(27% 0.05 235); /* ≈ #0B2E40  fondo profundo */
+  --c-deep: oklch(38% 0.075 237); /* ≈ #0F4C6B */
+  --c-ocean: oklch(46% 0.095 238); /* ≈ #145F86  primario */
+  --c-tide: oklch(53% 0.11 238); /* ≈ #1B74A3 */
+  --c-foam: oklch(93.5% 0.025 228); /* ≈ #DCEEF6 */
+  --c-mist: oklch(97% 0.012 228); /* ≈ #EEF7FB */
+  --c-seaglass: oklch(66% 0.1 210); /* ≈ #2BA3B8  acento (<5 % de la superficie) */
+  --c-ice: oklch(97.8% 0.005 230); /* ≈ #F4F8FA  fondo de la app */
+  --c-white: oklch(100% 0 0);
+  --c-frost: oklch(90% 0.016 235); /* ≈ #D5E1E8  líneas */
+  --c-frost-strong: oklch(82% 0.022 235);
+  --c-slate-500: oklch(48% 0.035 235); /* ≈ #4A6272 */
+  --c-slate-900: oklch(25% 0.035 235); /* ≈ #0F2533 */
+  --c-kelp: oklch(52% 0.12 158); /* verde mar */
+  --c-amber: oklch(62% 0.14 70);
+  --c-coral: oklch(55% 0.17 27);
+  --c-coral-deep: oklch(47% 0.16 27);
+
+  /* ---- Alias semánticos (los únicos que usan los componentes) ----------- */
+  --surface: var(--c-ice);
+  --surface-raised: var(--c-white);
+  --surface-sunken: var(--c-mist);
+  --surface-inverse: var(--c-abyss);
+  --surface-inverse-raised: oklch(33% 0.055 236);
+
+  --ink: var(--c-slate-900);
+  --ink-muted: var(--c-slate-500);
+  --ink-faint: oklch(62% 0.03 235);
+  --ink-inverse: oklch(97% 0.01 228);
+  --ink-inverse-muted: oklch(78% 0.03 230);
+
+  --line: var(--c-frost);
+  --line-strong: var(--c-frost-strong);
+  --line-inverse: oklch(40% 0.05 236);
+
+  --brand: var(--c-ocean);
+  --brand-hover: var(--c-deep);
+  --brand-active: var(--c-abyss);
+  --brand-soft: var(--c-foam);
+  --brand-softer: var(--c-mist);
+  --brand-ink: var(--c-deep); /* texto de marca sobre fondos claros */
+  --accent: var(--c-seaglass);
+
+  --success: var(--c-kelp);
+  --success-soft: oklch(95% 0.035 158);
+  --warning: var(--c-amber);
+  --warning-ink: oklch(46% 0.11 65);
+  --warning-soft: oklch(96% 0.045 85);
+  --danger: var(--c-coral);
+  --danger-hover: var(--c-coral-deep);
+  --danger-soft: oklch(96% 0.025 27);
+  --info: var(--c-tide);
+  --info-soft: var(--c-mist);
+
+  --focus-ring: var(--c-tide);
+  --backdrop: oklch(27% 0.05 235 / 0.45);
+
+  /* ---- Tipografía ------------------------------------------------------- */
+  --font-display: 'Archivo Variable', 'Archivo', 'Arial Narrow', sans-serif;
+  --font-body: 'IBM Plex Sans Variable', 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --display-stretch: 84%; /* Archivo semicondensada: letrero de mercado */
+
+  /* Escala densa (≈1.2) para UI de trabajo */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-display: clamp(2.5rem, 1.6rem + 3vw, 4rem);
+
+  /* ---- Espacio (base 4px) ---------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-9: 3rem;
+  --space-10: 4rem;
+  --space-11: 5rem;
+  --space-12: 6rem;
+
+  /* ---- Controles -------------------------------------------------------- */
+  --control-h-sm: 2rem;
+  --control-h-md: 2.5rem;
+  --control-h-lg: 3rem;
+  --control-h-xl: 3.5rem; /* botones de la pantalla de venta */
+
+  /* ---- Forma, línea, elevación ----------------------------------------- */
+  --radius: 6px; /* controles */
+  --radius-lg: 10px; /* contenedores */
+  --border: 1px solid var(--line);
+  --shadow-float: 0 18px 48px -18px oklch(27% 0.05 235 / 0.35); /* solo capas flotantes */
+
+  /* ---- Movimiento ------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur: 320ms;
+  --dur-slow: 560ms;
+
+  /* ---- Layout ----------------------------------------------------------- */
+  --sidebar-w: 15.5rem;
+  --topbar-h: 3.5rem;
+  --content-max: 88rem;
+  --measure: 65ch;
+}

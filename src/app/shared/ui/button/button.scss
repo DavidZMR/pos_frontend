@@ -1,0 +1,113 @@
+:host {
+  --btn-bg: var(--brand);
+  --btn-bg-hover: var(--brand-hover);
+  --btn-ink: var(--ink-inverse);
+  --btn-line: var(--brand);
+  --btn-line-hover: var(--brand-hover);
+  --btn-h: var(--control-h-md);
+  --btn-px: var(--space-4);
+  --btn-font: var(--text-sm);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--btn-h);
+  padding-inline: var(--btn-px);
+  border: 1px solid var(--btn-line);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font-family: var(--font-body);
+  font-size: var(--btn-font);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+:host(:hover:not([disabled])) {
+  background: var(--btn-bg-hover);
+  border-color: var(--btn-line-hover);
+  transform: translateY(-1px);
+}
+
+:host(:active:not([disabled])) {
+  transform: translateY(0);
+}
+
+:host([disabled]) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+:host([aria-busy='true']) {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+/* ---- Variantes ---------------------------------------------------------- */
+:host(.pos-button--secondary) {
+  --btn-bg: var(--surface-raised);
+  --btn-bg-hover: var(--brand-softer);
+  --btn-ink: var(--ink);
+  --btn-line: var(--line-strong);
+  --btn-line-hover: var(--brand);
+}
+
+:host(.pos-button--ghost) {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--brand-softer);
+  --btn-ink: var(--brand-ink);
+  --btn-line: transparent;
+  --btn-line-hover: var(--brand-soft);
+}
+
+:host(.pos-button--danger) {
+  --btn-bg: var(--danger);
+  --btn-bg-hover: var(--danger-hover);
+  --btn-line: var(--danger);
+  --btn-line-hover: var(--danger-hover);
+}
+
+/* ---- Tamaños ------------------------------------------------------------ */
+:host(.pos-button--sm) {
+  --btn-h: var(--control-h-sm);
+  --btn-px: var(--space-3);
+  --btn-font: var(--text-xs);
+}
+
+:host(.pos-button--lg) {
+  --btn-h: var(--control-h-lg);
+  --btn-px: var(--space-5);
+  --btn-font: var(--text-md);
+}
+
+:host(.pos-button--xl) {
+  --btn-h: var(--control-h-xl);
+  --btn-px: var(--space-6);
+  --btn-font: var(--text-lg);
+}
+
+:host(.pos-button--icon-only) {
+  width: var(--btn-h);
+  padding-inline: 0;
+}
+
+:host(.pos-button--block) {
+  display: flex;
+  width: 100%;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

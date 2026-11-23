@@ -1,0 +1,135 @@
+<main class="kit">
+  <pos-page-header
+    eyebrow="Sistema de diseño"
+    heading="Mar frío"
+    description="Mostrador de lonja al amanecer: acero, hielo y agua del Pacífico. Colores planos, líneas finas y números alineados."
+  >
+    <button posButton variant="secondary" icon="refresh" headerActions (click)="reload()">
+      Recargar tabla
+    </button>
+    <button posButton icon="plus" headerActions (click)="showError()">Probar error</button>
+  </pos-page-header>
+
+  <section class="swatches" aria-label="Paleta">
+    @for (
+      swatch of ['abyss', 'deep', 'ocean', 'tide', 'seaglass', 'foam', 'mist', 'ice'];
+      track swatch
+    ) {
+      <div class="swatch" [style.--swatch]="'var(--c-' + swatch + ')'">
+        <span class="chip"></span>
+        <span class="swatch-name">{{ swatch }}</span>
+      </div>
+    }
+  </section>
+
+  <div class="grid">
+    <pos-card heading="Botones" class="span-7">
+      <div class="row">
+        <button posButton>Primario</button>
+        <button posButton variant="secondary">Secundario</button>
+        <button posButton variant="ghost">Fantasma</button>
+        <button posButton variant="danger" icon="trash">Eliminar</button>
+      </div>
+      <div class="row">
+        <button posButton size="sm" icon="plus">Chico</button>
+        <button posButton size="lg" icon="cart">Grande</button>
+        <button posButton size="xl" icon="wallet">Cobrar $1,250.00</button>
+      </div>
+      <div class="row">
+        <button posButton [loading]="true">Guardando</button>
+        <button posButton variant="secondary" [disabled]="true">Deshabilitado</button>
+        <button posButton variant="ghost" icon="pencil" iconOnly aria-label="Editar"></button>
+        <button
+          posButton
+          variant="secondary"
+          icon="printer"
+          iconOnly
+          aria-label="Imprimir"
+        ></button>
+      </div>
+      <div class="row">
+        <pos-badge tone="success">Activo</pos-badge>
+        <pos-badge>Inactivo</pos-badge>
+        <pos-badge tone="brand">Administrador</pos-badge>
+        <pos-badge tone="warning">Stock bajo</pos-badge>
+        <pos-badge tone="danger">Cancelada</pos-badge>
+      </div>
+    </pos-card>
+
+    <pos-card heading="Formulario (Signal Forms)" class="span-5">
+      <form class="form" novalidate (submit)="save(); $event.preventDefault()">
+        <pos-input label="Nombre" icon="user" [formField]="demoForm.name" />
+        <pos-input
+          label="Usuario"
+          hint="Minúsculas, sin espacios"
+          [formField]="demoForm.username"
+          autocomplete="off"
+        />
+        <pos-input label="Contraseña" type="password" [formField]="demoForm.password" />
+        <pos-select
+          label="Rol"
+          placeholder="Selecciona…"
+          [options]="roleOptions"
+          [formField]="demoForm.role"
+        />
+        <pos-toggle
+          label="Usuario activo"
+          description="Puede iniciar sesión"
+          [formField]="demoForm.active"
+        />
+        <button posButton type="submit" icon="check" [loading]="saving()" block>Guardar</button>
+      </form>
+    </pos-card>
+  </div>
+
+  <h2 class="section-title">Tabla</h2>
+  <pos-table
+    caption="Productos de ejemplo"
+    [columns]="columns"
+    [rows]="products()"
+    [loading]="loading()"
+    [page]="{ page: 1, pages: 3, total: 52, limit: 20 }"
+  >
+    <ng-template posCell="name" [posCellOf]="products()" let-product>
+      <span class="product-name">{{ product.name }}</span>
+      <span class="product-price-hint"
+        >{{ product.salePriceCents | money }} / {{ product.unit }}</span
+      >
+    </ng-template>
+    <ng-template posCell="status" [posCellOf]="products()" let-product>
+      <pos-badge [tone]="product.active ? 'success' : 'neutral'">
+        {{ product.active ? 'Activo' : 'Inactivo' }}
+      </pos-badge>
+    </ng-template>
+    <ng-template posCell="actions" [posCellOf]="products()" let-product>
+      <button
+        posButton
+        variant="ghost"
+        size="sm"
+        icon="pencil"
+        iconOnly
+        aria-label="Editar"
+      ></button>
+      <button
+        posButton
+        variant="ghost"
+        size="sm"
+        icon="trash"
+        iconOnly
+        [attr.aria-label]="'Desactivar ' + product.name"
+        (click)="remove(product)"
+      ></button>
+    </ng-template>
+  </pos-table>
+
+  <h2 class="section-title">Tabla vacía</h2>
+  <pos-table
+    caption="Sin resultados"
+    [columns]="columns"
+    [rows]="[]"
+    emptyTitle="Sin productos"
+    emptyMessage="Da de alta tu primer producto para empezar a vender."
+  >
+    <button posButton icon="plus" emptyActions>Nuevo producto</button>
+  </pos-table>
+</main>

@@ -1,0 +1,87 @@
+<div class="frame">
+  <div class="scroll" role="region" [attr.aria-label]="caption()" tabindex="0">
+    <table [attr.aria-busy]="loading() || null">
+      <caption class="visually-hidden">
+        {{
+          caption()
+        }}
+      </caption>
+      <thead>
+        <tr>
+          @for (column of columns(); track column.key) {
+            <th
+              scope="col"
+              [class]="'align-' + align(column)"
+              [class.hide-mobile]="column.hideOnMobile"
+              [style.width]="column.width ?? null"
+              [attr.aria-sort]="ariaSort(column)"
+            >
+              @if (column.sortable) {
+                <button type="button" class="sort" (click)="toggleSort(column)">
+                  {{ column.header }}
+                  <pos-icon [name]="sortIcon(column)" [size]="14" />
+                </button>
+              } @else {
+                {{ column.header }}
+              }
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && rows().length === 0) {
+          @for (i of skeletonRows; track i) {
+            <tr class="skeleton-row" aria-hidden="true">
+              @for (column of columns(); track column.key) {
+                <td [class.hide-mobile]="column.hideOnMobile"><span class="skeleton"></span></td>
+              }
+            </tr>
+          }
+        } @else {
+          @for (row of visibleRows(); track rowKey()(row, $index); let index = $index) {
+            <tr [class.dimmed]="loading()">
+              @for (column of columns(); track column.key) {
+                <td [class]="'align-' + align(column)" [class.hide-mobile]="column.hideOnMobile">
+                  @if (templates().get(column.key); as template) {
+                    <ng-container
+                      [ngTemplateOutlet]="template"
+                      [ngTemplateOutletContext]="{ $implicit: row, index: index }"
+                    />
+                  } @else {
+                    {{ display(column, row) }}
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td class="empty-cell" [attr.colspan]="columns().length">
+                <pos-empty-state
+                  [icon]="emptyIcon()"
+                  [heading]="emptyTitle()"
+                  [message]="emptyMessage()"
+                >
+                  <ng-content select="[emptyActions]" />
+                </pos-empty-state>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (page(); as info) {
+    @if (info.total > 0) {
+      <pos-paginator
+        class="paginator"
+        [page]="info.page"
+        [pages]="info.pages"
+        [total]="info.total"
+        [limit]="info.limit"
+        [disabled]="loading()"
+        (pageChange)="pageChange.emit($event)"
+      />
+    }
+  }
+</div>

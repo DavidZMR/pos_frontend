@@ -1,1 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
+// Estilos globales: tokens → base → overlays del CDK.
+// Las fuentes (Archivo e IBM Plex Sans, empaquetadas localmente) se cargan desde angular.json.
+@use 'styles/tokens';
+@use 'styles/base';
+@use 'styles/overlay';
