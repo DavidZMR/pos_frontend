@@ -14,7 +14,7 @@ function fakeBridge(snapshot: { status: ScaleStatus; reading: ScaleReading | nul
       getState: () => Promise.resolve(snapshot),
       saveConfig: (c) => Promise.resolve(c),
       listPorts: () => Promise.resolve([]),
-      detect: () => Promise.resolve(null),
+      detect: () => Promise.resolve({ scale: null, message: '' }),
       onStatus: (cb) => {
         listeners.status.push(cb);
         return () => listeners.status.splice(listeners.status.indexOf(cb), 1);
