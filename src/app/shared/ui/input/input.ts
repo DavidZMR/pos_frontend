@@ -12,7 +12,7 @@ import { PosFieldBase } from '../field/field-state';
 import { PosIcon } from '../icon/icon';
 import type { IconName } from '../icon/icons';
 
-export type InputType = 'text' | 'password' | 'email' | 'search' | 'tel' | 'url';
+export type InputType = 'text' | 'password' | 'email' | 'search' | 'tel' | 'url' | 'date';
 
 /**
  * Campo de texto compatible con Signal Forms:

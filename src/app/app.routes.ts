@@ -44,6 +44,27 @@ export const routes: Routes = [
         canMatch: [roleGuard('superadmin', 'admin')],
         loadComponent: () => import('./features/users/users-page').then((m) => m.UsersPage),
       },
+      {
+        path: 'productos',
+        title: `Productos · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () =>
+          import('./features/catalog/products/products-page').then((m) => m.ProductsPage),
+      },
+      {
+        path: 'categorias',
+        title: `Categorías · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () =>
+          import('./features/catalog/categories/categories-page').then((m) => m.CategoriesPage),
+      },
+      {
+        path: 'proveedores',
+        title: `Proveedores · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () =>
+          import('./features/catalog/suppliers/suppliers-page').then((m) => m.SuppliersPage),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

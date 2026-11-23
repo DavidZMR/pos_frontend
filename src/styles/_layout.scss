@@ -32,6 +32,28 @@
   }
 }
 
+/* Celdas numéricas alineadas a la derecha con su insignia debajo. */
+.cell-stack.stock {
+  justify-items: end;
+}
+
+/* Código corto de producto (tipo PLU). */
+.code {
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+/* Unidad tras un precio: "$389.00 /kg". */
+.per {
+  margin-inline-start: 2px;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
 /* Acciones de fila alineadas a la derecha. */
 .row-actions {
   display: inline-flex;

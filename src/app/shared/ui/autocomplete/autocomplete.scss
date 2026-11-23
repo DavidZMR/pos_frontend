@@ -1,0 +1,50 @@
+@use '../field/field';
+
+@include field.field-shell;
+
+.anchor {
+  position: relative;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 22rem;
+  margin: 0;
+  padding: var(--space-1);
+  overflow-y: auto;
+  list-style: none;
+  background: var(--surface-raised);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-float);
+  animation: panel-in var(--dur-fast) var(--ease-out);
+}
+
+.option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+
+  &.active {
+    background: var(--brand-softer);
+    box-shadow: inset 3px 0 0 var(--brand);
+  }
+}
+
+.empty {
+  padding: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

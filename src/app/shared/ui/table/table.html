@@ -41,7 +41,11 @@
           @for (row of visibleRows(); track rowKey()(row, $index); let index = $index) {
             <tr [class.dimmed]="loading()">
               @for (column of columns(); track column.key) {
-                <td [class]="'align-' + align(column)" [class.hide-mobile]="column.hideOnMobile">
+                <td
+                  [class]="'align-' + align(column)"
+                  [class.hide-mobile]="column.hideOnMobile"
+                  [class.nowrap]="column.type !== undefined && column.type !== 'text'"
+                >
                   @if (templates().get(column.key); as template) {
                     <ng-container
                       [ngTemplateOutlet]="template"

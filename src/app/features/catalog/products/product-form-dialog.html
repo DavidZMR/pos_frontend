@@ -1,0 +1,95 @@
+<form novalidate (submit)="save(); $event.preventDefault()">
+  <pos-dialog
+    [heading]="isEdit ? 'Editar producto' : 'Nuevo producto'"
+    [description]="
+      isEdit
+        ? 'La existencia solo cambia con entradas, ventas y ajustes.'
+        : 'El código corto sirve para teclearlo rápido en caja.'
+    "
+  >
+    <div class="sections">
+      <section class="section" aria-labelledby="sec-id">
+        <h3 class="section-title" id="sec-id">Identificación</h3>
+        <div class="grid">
+          <pos-input label="Código" hint="Corto, p. ej. 101" [formField]="productForm.code" />
+          <pos-input
+            label="Código de barras"
+            icon="barcode"
+            hint="Opcional; escanéalo aquí"
+            [formField]="productForm.barcode"
+          />
+          <pos-input class="span-2" label="Nombre" [formField]="productForm.name" />
+          <pos-select
+            class="span-2"
+            label="Categoría"
+            [options]="categoryOptions()"
+            [formField]="productForm.categoryId"
+          />
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="sec-price">
+        <h3 class="section-title" id="sec-price">Precio</h3>
+        <div class="grid">
+          <pos-select
+            label="Se vende por"
+            [hint]="isEdit ? 'No se puede cambiar después del alta' : ''"
+            [options]="unitOptions"
+            [formField]="productForm.unit"
+          />
+          <pos-select label="IVA" [options]="taxOptions" [formField]="productForm.taxRateBp" />
+          <pos-money-input
+            [label]="'Precio de venta por ' + unitLabel()"
+            hint="IVA incluido: lo que paga el cliente"
+            [formField]="productForm.salePriceCents"
+          />
+          <pos-money-input
+            [label]="(isEdit ? 'Costo promedio por ' : 'Costo por ') + unitLabel()"
+            [hint]="isEdit ? 'Se recalcula solo con cada entrada' : 'Lo que te cuesta comprarlo'"
+            [formField]="productForm.costCents"
+          />
+        </div>
+        @if (margin(); as m) {
+          <p class="margin" [class.margin--negative]="m.negative" role="status">
+            Margen <strong class="num">{{ m.percent }} %</strong> · ganas
+            <strong class="num">{{ m.profit }}</strong> por {{ unitLabel() }}
+          </p>
+        }
+      </section>
+
+      <section class="section" aria-labelledby="sec-stock">
+        <h3 class="section-title" id="sec-stock">Inventario</h3>
+        <div class="grid">
+          @if (!isEdit) {
+            <pos-qty-input
+              label="Existencia inicial"
+              hint="Lo que tienes hoy en almacén"
+              [unit]="unit()"
+              [formField]="productForm.initialStock"
+            />
+          }
+          <pos-qty-input
+            label="Existencia mínima"
+            hint="Avisa cuando quede esto o menos (0 = sin aviso)"
+            [unit]="unit()"
+            [formField]="productForm.minStock"
+          />
+          @if (isEdit) {
+            <pos-toggle
+              label="Activo"
+              description="Inactivo = no aparece en caja"
+              [formField]="productForm.active"
+            />
+          }
+        </div>
+      </section>
+    </div>
+
+    <ng-container dialogActions>
+      <button posButton variant="secondary" type="button" (click)="ref.close()">Cancelar</button>
+      <button posButton type="submit" icon="check" [loading]="saving()">
+        {{ isEdit ? 'Guardar cambios' : 'Crear producto' }}
+      </button>
+    </ng-container>
+  </pos-dialog>
+</form>

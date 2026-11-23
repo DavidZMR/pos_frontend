@@ -1,4 +1,10 @@
+export { PosAutocomplete, PosOptionDef } from './autocomplete/autocomplete';
 export { PosBadge, type BadgeTone } from './badge/badge';
+export { PosBusinessGate } from './business-gate/business-gate';
+export { PosMoneyInput } from './money-input/money-input';
+export { PosQtyInput } from './qty-input/qty-input';
+export { PosStatTile, type StatTone } from './stat-tile/stat-tile';
+export { PosTextarea } from './textarea/textarea';
 export { PosButton, type ButtonSize, type ButtonVariant } from './button/button';
 export { PosCard } from './card/card';
 export { ConfirmService } from './dialog/confirm-service';

@@ -1,0 +1,125 @@
+<pos-page-header
+  heading="Productos"
+  description="Precios con IVA incluido. La existencia cambia con entradas, ventas y ajustes."
+>
+  <button posButton icon="plus" headerActions [disabled]="!context.scope()" (click)="openForm()">
+    Nuevo producto
+  </button>
+</pos-page-header>
+
+<pos-business-gate>
+  <div class="pos-filters">
+    <pos-input
+      class="grow"
+      label="Buscar"
+      icon="search"
+      type="search"
+      placeholder="Código, código de barras o nombre"
+      [(value)]="searchText"
+    />
+    <pos-select label="Categoría" [options]="categoryFilterOptions()" [(value)]="categoryId" />
+    <pos-select label="Existencia" [options]="stockOptions" [(value)]="stockFilter" />
+    <pos-select label="Estado" [options]="statusOptions" [(value)]="status" />
+  </div>
+
+  <pos-table
+    caption="Productos"
+    sortMode="server"
+    [columns]="columns"
+    [rows]="rows()"
+    [loading]="products.isLoading()"
+    [page]="meta()"
+    [(sort)]="sort"
+    (pageChange)="page.set($event)"
+    emptyIcon="package"
+    emptyTitle="Sin productos"
+    emptyMessage="Da de alta tus productos con su precio y existencia inicial."
+  >
+    <button posButton icon="plus" emptyActions (click)="openForm()">Nuevo producto</button>
+
+    <ng-template posCell="code" [posCellOf]="rows()" let-product>
+      <span class="num code">{{ product.code }}</span>
+    </ng-template>
+
+    <ng-template posCell="name" [posCellOf]="rows()" let-product>
+      <span class="cell-stack">
+        <span class="primary">
+          {{ product.name }}
+          @if (!product.active) {
+            <pos-badge>Inactivo</pos-badge>
+          }
+        </span>
+        <span class="secondary">
+          {{ lookups.categoryName(product.categoryId) || 'Sin categoría' }}
+          @if (product.barcode) {
+            · {{ product.barcode }}
+          }
+        </span>
+      </span>
+    </ng-template>
+
+    <ng-template posCell="salePriceCents" [posCellOf]="rows()" let-product>
+      <span class="num">
+        <strong>{{ product.salePriceCents | money }}</strong>
+        <span class="per">/{{ units[product.unit].label }}</span>
+      </span>
+    </ng-template>
+
+    <ng-template posCell="costCents" [posCellOf]="rows()" let-product>
+      <span class="num muted">{{ product.costCents | money }}</span>
+    </ng-template>
+
+    <ng-template posCell="stock" [posCellOf]="rows()" let-product>
+      <span class="cell-stack stock">
+        <span class="primary num">{{ product.stock | qty: product.unit }}</span>
+        @if (stockStatus(product); as st) {
+          @if (st !== 'ok') {
+            <pos-badge [tone]="stockTone[st]">{{ stockLabel[st] }}</pos-badge>
+          }
+        }
+      </span>
+    </ng-template>
+
+    <ng-template posCell="actions" [posCellOf]="rows()" let-product>
+      <span class="row-actions">
+        <button
+          posButton
+          variant="ghost"
+          size="sm"
+          icon="pencil"
+          iconOnly
+          [attr.aria-label]="'Editar ' + product.name"
+          (click)="openForm(product)"
+        ></button>
+        <button
+          posButton
+          variant="ghost"
+          size="sm"
+          icon="clock"
+          iconOnly
+          [attr.aria-label]="'Historial de precios de ' + product.name"
+          (click)="openHistory(product)"
+        ></button>
+        <a
+          posButton
+          variant="ghost"
+          size="sm"
+          icon="arrow-left-right"
+          iconOnly
+          [routerLink]="['/almacen/movimientos']"
+          [queryParams]="{ producto: product.id }"
+          [attr.aria-label]="'Movimientos de ' + product.name"
+        ></a>
+        <button
+          posButton
+          variant="ghost"
+          size="sm"
+          [icon]="product.active ? 'power' : 'refresh'"
+          iconOnly
+          [attr.aria-label]="(product.active ? 'Desactivar ' : 'Reactivar ') + product.name"
+          (click)="toggleActive(product)"
+        ></button>
+      </span>
+    </ng-template>
+  </pos-table>
+</pos-business-gate>

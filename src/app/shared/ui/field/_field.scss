@@ -8,6 +8,7 @@
 
   .field {
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* opciones largas de un select no ensanchan el campo */
     gap: var(--space-1);
   }
 

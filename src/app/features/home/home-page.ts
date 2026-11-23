@@ -9,6 +9,12 @@ import { PosBadge, PosIcon, PosPageHeader } from '../../shared/ui';
 const DESCRIPTIONS: Record<string, string> = {
   '/negocios': 'Da de alta negocios, edita sus datos y desactívalos.',
   '/usuarios': 'Crea cuentas para tu equipo y controla quién puede entrar.',
+  '/productos': 'Precios, códigos, existencias y su historial de cambios.',
+  '/categorias': 'Agrupa tus productos para encontrarlos rápido.',
+  '/proveedores': 'Quién te surte la mercancía.',
+  '/almacen/existencias': 'Cuánto tienes, cuánto vale y qué se está acabando.',
+  '/almacen/entradas': 'Registra la mercancía que llega con su costo.',
+  '/almacen/movimientos': 'Kárdex: cada entrada, venta y ajuste de cada producto.',
 };
 
 /** Pantalla de inicio: saludo, negocio actual y accesos a lo que el rol puede usar. */
