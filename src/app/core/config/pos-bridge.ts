@@ -82,10 +82,27 @@ export interface PosScaleBridge {
   onDetectProgress(callback: (message: string) => void): Unsubscribe;
 }
 
+/** Impresora instalada en Windows. */
+export interface PrinterInfo {
+  name: string;
+  displayName: string;
+  isDefault: boolean;
+}
+
+export type PrintResult = { ok: true } | { ok: false; error: string };
+
+export interface PosPrinterBridge {
+  list(): Promise<PrinterInfo[]>;
+  saveConfig(config: PrinterConfig): Promise<PrinterConfig>;
+  /** Imprime un documento HTML completo en la impresora configurada en esta PC. */
+  print(job: { html: string }): Promise<PrintResult>;
+}
+
 export interface PosBridge {
   config?: PosBridgeConfig;
   hardware?: { getConfig(): Promise<HardwareConfig> };
   scale?: PosScaleBridge;
+  printer?: PosPrinterBridge;
 }
 
 declare global {

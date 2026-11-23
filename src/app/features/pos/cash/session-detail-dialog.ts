@@ -1,10 +1,11 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { Component, computed, inject, resource } from '@angular/core';
+import { Component, computed, inject, resource, signal } from '@angular/core';
 import { toApiError } from '../../../core/api/api-types';
 import { PosBadge, PosButton, PosDialog, PosSpinner } from '../../../shared/ui';
 import { formatDateTime } from '../../../shared/utils/format';
 import { PosApi } from '../pos-api';
 import { sessionFolio } from '../pos-models';
+import { TicketPrinter } from '../ticket/ticket-printer';
 import { PosCashBreakdown } from './cash-breakdown';
 import { PosCashMovements } from './cash-movements';
 
@@ -51,6 +52,17 @@ export interface SessionDetailData {
         </div>
       }
       <ng-container dialogActions>
+        @if (tickets.ready() && session.hasValue()) {
+          <button
+            posButton
+            variant="secondary"
+            icon="printer"
+            [loading]="printing()"
+            (click)="print()"
+          >
+            Imprimir corte
+          </button>
+        }
         <button posButton variant="secondary" (click)="ref.close()">Cerrar</button>
       </ng-container>
     </pos-dialog>
@@ -94,6 +106,8 @@ export class SessionDetailDialog {
   protected readonly ref = inject(DialogRef);
   private readonly data = inject<SessionDetailData>(DIALOG_DATA);
   private readonly api = inject(PosApi);
+  protected readonly tickets = inject(TicketPrinter);
+  protected readonly printing = signal(false);
 
   protected readonly folio = sessionFolio(this.data.folio);
   protected readonly when = formatDateTime;
@@ -107,4 +121,14 @@ export class SessionDetailDialog {
     this.session.hasValue() ? `Cajero: ${this.session.value().userName}` : '',
   );
   protected readonly errorText = computed(() => toApiError(this.session.error()).message);
+
+  protected async print(): Promise<void> {
+    if (!this.session.hasValue()) return;
+    this.printing.set(true);
+    try {
+      await this.tickets.printCashClose(this.session.value());
+    } finally {
+      this.printing.set(false);
+    }
+  }
 }

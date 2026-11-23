@@ -14,7 +14,25 @@
         <p class="done-detail">{{ labels[done.payments[0]?.method ?? 'cash'].label }}</p>
       }
     </div>
+    @if (printing()) {
+      <p class="print-status" role="status">Imprimiendo ticket…</p>
+    } @else if (printed()) {
+      <p class="print-status" role="status">Ticket impreso</p>
+    }
     <ng-container dialogActions>
+      @if (tickets.ready()) {
+        <button
+          posButton
+          variant="secondary"
+          size="lg"
+          icon="printer"
+          type="button"
+          [loading]="printing()"
+          (click)="print()"
+        >
+          {{ printed() ? 'Reimprimir (F9)' : 'Imprimir (F9)' }}
+        </button>
+      }
       <button #doneButton posButton size="lg" icon="cart" type="button" (click)="finish()" block>
         Nueva venta (Enter)
       </button>

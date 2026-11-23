@@ -21,6 +21,7 @@ import {
   type Sale,
   saleFolio,
 } from './pos-models';
+import { TicketPrinter } from './ticket/ticket-printer';
 
 export interface PaymentDialogData {
   totalCents: number;
@@ -50,12 +51,13 @@ export function suggestedCash(totalCents: number): number[] {
   imports: [PosDialog, PosButton, PosIcon, PosMoneyInput, MoneyPipe],
   templateUrl: './payment-dialog.html',
   styleUrl: './payment-dialog.scss',
-  host: { '(keydown.enter)': 'onEnter($event)' },
+  host: { '(keydown.enter)': 'onEnter($event)', '(keydown.f9)': 'onPrintKey($event)' },
 })
 export class PaymentDialog {
   protected readonly ref = inject<DialogRef<PaymentResult>>(DialogRef);
   protected readonly data = inject<PaymentDialogData>(DIALOG_DATA);
   private readonly api = inject(PosApi);
+  protected readonly tickets = inject(TicketPrinter);
 
   protected readonly methods = PAYMENT_METHODS;
   protected readonly labels = PAYMENT_LABEL;
@@ -66,6 +68,8 @@ export class PaymentDialog {
   protected readonly saving = signal(false);
   protected readonly error = signal('');
   protected readonly sale = signal<Sale | null>(null);
+  protected readonly printing = signal(false);
+  protected readonly printed = signal(false);
 
   private readonly receivedInput = viewChild<PosMoneyInput>('receivedInput');
   // `read: ElementRef`: #doneButton está sobre un posButton (componente), queremos el <button>.
@@ -122,6 +126,7 @@ export class PaymentDialog {
       });
       this.sale.set(sale);
       afterNextRender(() => this.doneButton()?.nativeElement.focus(), { injector: this.injector });
+      if (this.tickets.autoPrint()) void this.print();
     } catch (error) {
       const apiError = toApiError(error);
       if (apiError.code === 'PRICE_CHANGED') {
@@ -137,6 +142,24 @@ export class PaymentDialog {
       this.saving.set(false);
       // Tras cobrar solo se sale con "Nueva venta" (así el ticket siempre se limpia).
       this.ref.disableClose = this.sale() !== null;
+    }
+  }
+
+  protected onPrintKey(event: Event): void {
+    event.preventDefault();
+    void this.print();
+  }
+
+  /** Imprime el ticket (la segunda vez sale como reimpresión). */
+  protected async print(): Promise<void> {
+    const sale = this.sale();
+    if (!sale || this.printing() || !this.tickets.ready()) return;
+    this.printing.set(true);
+    try {
+      if (await this.tickets.printSale(sale, { reprint: this.printed() })) this.printed.set(true);
+    } finally {
+      this.printing.set(false);
+      this.doneButton()?.nativeElement.focus();
     }
   }
 
