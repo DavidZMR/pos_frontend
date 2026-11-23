@@ -1,0 +1,98 @@
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<div class="shell" [class.nav-open]="navOpen()">
+  <aside class="sidebar" id="pos-sidebar" aria-label="Navegación principal">
+    <div class="brand">
+      <span class="mark"><pos-icon name="waves" [size]="22" [strokeWidth]="2" /></span>
+      <span class="wordmark">Punto<b>Venta</b></span>
+    </div>
+
+    <nav class="nav">
+      @for (group of groups(); track group.label) {
+        <p class="group-label">{{ group.label }}</p>
+        <ul>
+          @for (item of group.items; track item.path) {
+            <li>
+              <a
+                class="nav-link"
+                [routerLink]="item.path"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                (click)="closeNav()"
+              >
+                <pos-icon [name]="item.icon" [size]="20" />
+                <span>{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </nav>
+
+    <div class="account">
+      <div class="identity">
+        <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+        <div class="who">
+          <p class="name">{{ auth.user()?.name }}</p>
+          <p class="role">{{ roleLabel() }}</p>
+        </div>
+      </div>
+      <div class="account-actions">
+        <button type="button" class="side-btn" (click)="changePassword()">
+          <pos-icon name="key" [size]="16" />
+          Contraseña
+        </button>
+        <button type="button" class="side-btn" (click)="logout()">
+          <pos-icon name="log-out" [size]="16" />
+          Salir
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="scrim" aria-hidden="true" (click)="closeNav()"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button
+        type="button"
+        class="menu-toggle"
+        aria-controls="pos-sidebar"
+        [attr.aria-expanded]="navOpen()"
+        aria-label="Abrir menú"
+        (click)="toggleNav()"
+      >
+        <pos-icon name="menu" [size]="22" />
+      </button>
+
+      <div class="context">
+        <pos-icon name="store" [size]="18" class="context-icon" />
+        @if (auth.isSuperadmin()) {
+          <label class="visually-hidden" for="business-context">Negocio activo</label>
+          <select
+            #businessSelect
+            id="business-context"
+            class="context-select"
+            (change)="selectBusiness(businessSelect.value)"
+          >
+            <option value="" [selected]="!context.current()">Todos los negocios</option>
+            @for (business of context.options(); track business.id) {
+              <option [value]="business.id" [selected]="business.id === context.current()?.id">
+                {{ business.name }}{{ business.active ? '' : ' (inactivo)' }}
+              </option>
+            }
+          </select>
+          <pos-icon name="chevron-down" [size]="16" class="context-chevron" />
+        } @else {
+          <span class="context-name">{{ context.current()?.name }}</span>
+        }
+      </div>
+
+      <span class="version">v{{ config.appVersion }}</span>
+    </header>
+
+    <main class="content" id="contenido" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>
