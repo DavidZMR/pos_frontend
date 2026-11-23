@@ -1,0 +1,139 @@
+<pos-card heading="Báscula">
+  <pos-badge cardActions [tone]="live().tone">{{ live().label }}</pos-badge>
+
+  <div class="layout">
+    <!-- Lectura en vivo: sirve para comprobar que la báscula quedó bien configurada. -->
+    <div class="readout" [class]="'tone-' + live().tone" aria-live="polite">
+      <span class="readout-label">Lectura de la báscula</span>
+      @if (live().weight) {
+        <strong class="readout-weight num">{{ live().weight }}</strong>
+        <span class="readout-state">{{ live().stable ? 'Estable' : 'Pesando…' }}</span>
+      } @else {
+        <strong class="readout-weight num muted">—</strong>
+        <span class="readout-state">{{ live().message }}</span>
+      }
+    </div>
+
+    <div class="form">
+      <pos-toggle
+        label="Usar báscula en esta PC"
+        description="Sin báscula, el cajero escribe el peso de los productos por kg."
+        [checked]="draft().enabled"
+        (checkedChange)="patch({ enabled: $event })"
+      />
+
+      @if (draft().enabled) {
+        <div class="detect">
+          <button
+            posButton
+            variant="secondary"
+            icon="search"
+            [loading]="detecting()"
+            [disabled]="saving()"
+            (click)="detect()"
+          >
+            Buscar báscula automáticamente
+          </button>
+          @if (progress()) {
+            <p class="progress" role="status">{{ progress() }}</p>
+          } @else {
+            <p class="progress muted">
+              Enciende la báscula y conéctala. Se prueban los puertos COM con las configuraciones
+              más comunes (Torrey, Rhino, CAS, Ohaus, Mettler).
+            </p>
+          }
+        </div>
+
+        <div class="grid">
+          <div class="port">
+            <pos-select
+              label="Puerto"
+              placeholder="Elige el puerto"
+              [options]="ports()"
+              [value]="draft().path"
+              (valueChange)="selectPort($event)"
+            />
+            <button
+              posButton
+              variant="ghost"
+              icon="refresh"
+              iconOnly
+              aria-label="Actualizar lista de puertos"
+              [loading]="loadingPorts()"
+              (click)="refreshPorts()"
+            ></button>
+          </div>
+          <pos-select
+            label="Velocidad"
+            [options]="baudOptions"
+            [value]="draft().baudRate"
+            (valueChange)="patch({ baudRate: $event })"
+          />
+          <pos-select
+            label="Cómo manda el peso"
+            [options]="modeOptions"
+            [value]="draft().mode"
+            (valueChange)="patch({ mode: $event })"
+          />
+          @if (draft().mode === 'request') {
+            <pos-input
+              label="Comando para pedir el peso"
+              hint="Torrey/Ohaus: P · CAS/Rhino: \x05 · Mettler: SI\r\n"
+              [value]="draft().command"
+              (valueChange)="patch({ command: $event })"
+            />
+          }
+        </div>
+
+        <button
+          posButton
+          class="advanced-toggle"
+          variant="ghost"
+          size="sm"
+          [icon]="showAdvanced() ? 'chevron-down' : 'chevron-right'"
+          [attr.aria-expanded]="showAdvanced()"
+          (click)="showAdvanced.set(!showAdvanced())"
+        >
+          Ajustes avanzados del puerto
+        </button>
+        @if (showAdvanced()) {
+          <div class="grid advanced">
+            <pos-select
+              label="Bits de datos"
+              [options]="dataBitsOptions"
+              [value]="draft().dataBits"
+              (valueChange)="patch({ dataBits: $event })"
+            />
+            <pos-select
+              label="Paridad"
+              [options]="parityOptions"
+              [value]="draft().parity"
+              (valueChange)="patch({ parity: $event })"
+            />
+            <pos-select
+              label="Bits de parada"
+              [options]="stopBitsOptions"
+              [value]="draft().stopBits"
+              (valueChange)="patch({ stopBits: $event })"
+            />
+          </div>
+        }
+      }
+
+      <div class="actions">
+        @if (dirty()) {
+          <span class="unsaved"><pos-icon name="info" [size]="14" /> Cambios sin guardar</span>
+        }
+        <button
+          posButton
+          icon="check"
+          [loading]="saving()"
+          [disabled]="detecting()"
+          (click)="save()"
+        >
+          {{ draft().enabled ? 'Guardar y conectar' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</pos-card>
