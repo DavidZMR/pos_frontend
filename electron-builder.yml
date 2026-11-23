@@ -1,0 +1,48 @@
+# Instalador de Windows (NSIS). Ver skill pos-packaging.
+appId: com.puntoventa.desktop
+productName: PuntoVenta
+copyright: Copyright © 2026 PuntoVenta
+
+directories:
+  app: electron          # proceso principal + UI (electron/ui) → app.asar
+  output: release
+  buildResources: build-resources
+
+files:
+  - '**/*'
+  - '!**/*.map'
+  # electron/ aún no tiene dependencias propias; sin esto electron-builder empaqueta las de
+  # Angular de la raíz (innecesarias: la UI ya va compilada en electron/ui).
+  # Fase 5: al agregar serialport en electron/package.json, quitar esta línea.
+  - '!node_modules{,/**/*}'
+
+# Backend compilado + .env + node_modules de producción, fuera del asar.
+# Lección de JJ: electron-builder omite node_modules en extraResources si no se declaran aparte.
+extraResources:
+  - from: build/backend
+    to: backend
+    filter:
+      - '**/*'
+      - '!node_modules{,/**/*}'
+  - from: build/backend/node_modules
+    to: backend/node_modules
+    filter:
+      - '**/*'
+
+asar: true
+npmRebuild: false
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: '${productName}-Setup-${version}.${ext}'
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: PuntoVenta
+  uninstallDisplayName: PuntoVenta
