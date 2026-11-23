@@ -43,6 +43,16 @@ export class BusinessContext {
     return this.options().find((b) => b.id === id) ?? null;
   });
 
+  /**
+   * Negocio en el que operan las pantallas de catálogo, almacén, ventas…
+   * `null` si el superadmin no ha elegido uno. Léelo dentro de un `httpResource` para
+   * (a) no pedir datos sin negocio y (b) recargar al cambiar de negocio:
+   *   httpResource(() => this.context.scope() ? { url, params } : undefined)
+   */
+  readonly scope = computed<string | null>(() =>
+    this.auth.isSuperadmin() ? this.selectedId() : (this.auth.business()?.id ?? null),
+  );
+
   constructor() {
     // Si el negocio guardado ya no existe en la lista, se limpia la selección.
     effect(() => {

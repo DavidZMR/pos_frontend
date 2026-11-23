@@ -1,0 +1,8 @@
+@use '../field/field';
+
+@include field.field-shell;
+
+.native {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}

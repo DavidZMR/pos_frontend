@@ -1,0 +1,66 @@
+<div class="field">
+  @if (label()) {
+    <label class="label" [for]="controlId">{{ label() }}</label>
+  }
+  <div class="anchor">
+    <div class="control" [class.control--disabled]="disabled()">
+      <pos-icon class="lead" [name]="icon()" [size]="18" />
+      <input
+        #native
+        class="native"
+        type="text"
+        role="combobox"
+        autocomplete="off"
+        aria-autocomplete="list"
+        [id]="controlId"
+        [value]="term()"
+        [disabled]="disabled()"
+        [attr.placeholder]="placeholder() || null"
+        [attr.aria-expanded]="showPanel()"
+        [attr.aria-controls]="listId"
+        [attr.aria-activedescendant]="activeId()"
+        [attr.aria-describedby]="hint() ? controlId + '-hint' : null"
+        (input)="onInput(native.value)"
+        (keydown)="onKeydown($event)"
+        (focus)="open.set(true)"
+        (blur)="onBlur()"
+      />
+      @if (results.isLoading()) {
+        <pos-spinner [size]="16" />
+      }
+    </div>
+
+    @if (showPanel()) {
+      <ul class="panel" role="listbox" [id]="listId" [attr.aria-label]="label() || placeholder()">
+        @for (item of items(); track trackBy()(item); let i = $index) {
+          <li
+            class="option"
+            role="option"
+            [id]="controlId + '-opt-' + i"
+            [class.active]="i === active()"
+            [attr.aria-selected]="i === active()"
+            (mousedown)="$event.preventDefault()"
+            (mouseenter)="active.set(i)"
+            (click)="choose(item)"
+          >
+            @if (template(); as tpl) {
+              <ng-container
+                [ngTemplateOutlet]="tpl"
+                [ngTemplateOutletContext]="{ $implicit: item, active: i === active() }"
+              />
+            } @else {
+              {{ item }}
+            }
+          </li>
+        } @empty {
+          @if (!results.isLoading()) {
+            <li class="empty" role="presentation">{{ emptyText() }}</li>
+          }
+        }
+      </ul>
+    }
+  </div>
+  @if (hint()) {
+    <span class="hint" [id]="controlId + '-hint'">{{ hint() }}</span>
+  }
+</div>
