@@ -87,9 +87,14 @@ export class PosQtyInput extends PosFieldBase implements FormValueControl<number
   private readonly native = viewChild.required<ElementRef<HTMLInputElement>>('native');
 
   protected onFocus(): void {
-    this.draft.set(this.value() === 0 ? '' : qtyBaseToDecimalString(this.value(), this.unit()));
+    const draft = this.value() === 0 ? '' : qtyBaseToDecimalString(this.value(), this.unit());
+    this.draft.set(draft);
     this.focused.set(true);
-    queueMicrotask(() => this.native().nativeElement.select());
+    // El borrador se escribe YA en el DOM y se selecciona: si se esperara al render, el render
+    // reemplazaría el texto, se perdería la selección y lo tecleado se agregaría al final.
+    const native = this.native().nativeElement;
+    native.value = draft;
+    native.select();
   }
 
   protected onInput(raw: string): void {

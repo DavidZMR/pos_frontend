@@ -38,6 +38,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pos/pos-page').then((m) => m.PosPage),
       },
       {
+        path: 'caja',
+        title: `Caja · ${TITLE}`,
+        loadComponent: () => import('./features/pos/cash/cash-page').then((m) => m.CashPage),
+      },
+      {
+        path: 'ventas',
+        title: `Ventas · ${TITLE}`,
+        loadComponent: () => import('./features/pos/sales/sales-page').then((m) => m.SalesPage),
+      },
+      {
         path: 'negocios',
         title: `Negocios · ${TITLE}`,
         canMatch: [roleGuard('superadmin')],

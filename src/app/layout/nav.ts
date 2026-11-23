@@ -27,7 +27,11 @@ export const NAV: readonly NavGroup[] = [
   },
   {
     label: 'Operación',
-    items: [{ label: 'Punto de venta', path: '/venta', icon: 'cart', roles: ALL }],
+    items: [
+      { label: 'Punto de venta', path: '/venta', icon: 'cart', roles: ALL },
+      { label: 'Caja', path: '/caja', icon: 'wallet', roles: ALL },
+      { label: 'Ventas', path: '/ventas', icon: 'receipt', roles: ALL },
+    ],
   },
   {
     label: 'Catálogo',
