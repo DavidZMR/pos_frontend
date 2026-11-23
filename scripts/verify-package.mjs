@@ -8,9 +8,27 @@ const unpacked = join(root, 'release', 'win-unpacked');
 const resources = join(unpacked, 'resources');
 const backend = join(resources, 'backend');
 
+// serialport (báscula): el binario nativo debe ir FUERA del asar y solo el de Windows x64.
+const prebuilds = join(
+  resources,
+  'app.asar.unpacked',
+  'node_modules',
+  '@serialport',
+  'bindings-cpp',
+  'prebuilds',
+);
+
 const checks = [
   ['Ejecutable PuntoVenta.exe', existsSync(join(unpacked, 'PuntoVenta.exe'))],
   ['app.asar (UI + proceso principal)', existsSync(join(resources, 'app.asar'))],
+  [
+    'serialport: binario nativo win32-x64 fuera del asar',
+    existsSync(join(prebuilds, 'win32-x64', '@serialport+bindings-cpp.node')),
+  ],
+  [
+    'serialport: sin binarios de otras plataformas',
+    existsSync(prebuilds) && readdirSync(prebuilds).join() === 'win32-x64',
+  ],
   ['backend/dist/server.js', existsSync(join(backend, 'dist', 'server.js'))],
   [
     'backend/package.json con "type": "module"',

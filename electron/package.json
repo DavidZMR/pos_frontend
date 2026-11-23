@@ -7,5 +7,7 @@
   "license": "UNLICENSED",
   "private": true,
   "main": "main.cjs",
-  "dependencies": {}
+  "dependencies": {
+    "serialport": "^13.0.0"
+  }
 }
