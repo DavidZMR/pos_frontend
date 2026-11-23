@@ -11,14 +11,19 @@
   opacity: 1;
 }
 
-/* Panel de diálogo: superficie elevada; la sombra solo existe en capas flotantes. */
-.pos-dialog-panel {
+/* Panel de diálogo: superficie elevada; la sombra solo existe en capas flotantes.
+   Doble clase: el CDK inyecta en tiempo de ejecución `.cdk-overlay-pane { max-height: 100% }`
+   DESPUÉS de esta hoja; con una sola clase ganaría la suya y el diálogo crecería sin límite. */
+.cdk-overlay-pane.pos-dialog-panel {
   max-height: calc(100dvh - 2 * var(--space-6));
   display: flex;
 }
 
 .pos-dialog-panel .cdk-dialog-container {
   width: 100%;
+  /* Cada nivel hereda el alto máximo del panel hasta pos-dialog, cuyo cuerpo hace scroll:
+     así el pie con las acciones siempre queda visible aunque el contenido sea largo. */
+  max-height: inherit;
   display: flex;
   outline: none;
   background: var(--surface-raised);
@@ -29,12 +34,15 @@
   animation: pos-dialog-in var(--dur) var(--ease-out);
 }
 
-/* El componente abierto ocupa todo el panel (si no, el pie no llega al borde). */
-.pos-dialog-panel .cdk-dialog-container > * {
+/* El componente abierto ocupa todo el panel (si no, el pie no llega al borde). También el
+   <form> que suele envolver a <pos-dialog>, para no cortar la herencia del alto máximo. */
+.pos-dialog-panel .cdk-dialog-container > *,
+.pos-dialog-panel .cdk-dialog-container > * > form {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   max-height: inherit;
 }
 
