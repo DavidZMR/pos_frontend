@@ -1,0 +1,11 @@
+{
+  "name": "puntoventa",
+  "productName": "PuntoVenta",
+  "version": "0.1.0",
+  "description": "Punto de venta para marisquerías y comercios",
+  "author": "PuntoVenta",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.cjs",
+  "dependencies": {}
+}

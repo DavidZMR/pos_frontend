@@ -19,6 +19,12 @@ npm start          # http://localhost:4200
 | `npm test` | Pruebas unitarias (Vitest) |
 | `npm run build` | Build de producción |
 
-El empaquetado a `.exe` (Electron + electron-builder) se agrega en fases posteriores.
+## Aplicación de escritorio
+| Script | Descripción |
+|---|---|
+| `npm run electron:dev` | Electron contra `npm start` y el backend en desarrollo |
+| `npm run dist` | Genera `release/PuntoVenta-Setup-<versión>.exe` con el backend embebido |
+
+El instalador incluye el backend (`../pos_backend`) y su `.env`; requiere internet para MongoDB Atlas. Registro en `%APPDATA%\PuntoVenta\logs\puntoventa.log` y configuración por PC en `%APPDATA%\PuntoVenta\config.json`.
 
 Las convenciones del proyecto están en [`CLAUDE.md`](CLAUDE.md).

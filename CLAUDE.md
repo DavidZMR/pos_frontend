@@ -12,6 +12,8 @@ Angular 22 (standalone, zoneless, OnPush por defecto, Signal Forms) · TypeScrip
 | `npm test` | Pruebas unitarias (Vitest) |
 | `npm run build` | Build de producción |
 | `npx ng generate component|service|pipe|guard ...` | Generar código con el CLI (siempre) |
+| `npm run electron:dev` | App de escritorio contra `ng serve` + backend dev |
+| `npm run dist` | Instalador `release/PuntoVenta-Setup-x.y.z.exe` (ver skill `pos-packaging`) |
 
 ## Estructura
 ```
