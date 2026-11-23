@@ -29,6 +29,23 @@ export class CashSessionStore {
     return session;
   }
 
+  async addMovement(input: {
+    type: 'in' | 'out';
+    amountCents: number;
+    reason: string;
+  }): Promise<CashSession> {
+    const session = await this.api.addCashMovement(input);
+    this.resource.set(session);
+    return session;
+  }
+
+  /** Corte de caja: devuelve el turno cerrado y deja la caja cerrada. */
+  async close(countedCashCents: number, notes?: string): Promise<CashSession> {
+    const session = await this.api.closeSession(countedCashCents, notes);
+    this.resource.set(null);
+    return session;
+  }
+
   set(session: CashSession | null): void {
     this.resource.set(session);
   }

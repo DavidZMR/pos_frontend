@@ -1,0 +1,136 @@
+<pos-page-header
+  eyebrow="Operación"
+  heading="Caja"
+  description="Tu turno: efectivo esperado en el cajón, entradas y retiros, y el corte al terminar."
+>
+  <button posButton headerActions variant="secondary" icon="refresh" (click)="refresh()">
+    Actualizar
+  </button>
+</pos-page-header>
+
+<pos-business-gate>
+  @if (store.current() === undefined) {
+    <div class="center"><pos-spinner [size]="28" label="Cargando caja" /></div>
+  } @else if (store.current(); as session) {
+    <section class="turn" aria-labelledby="turn-title">
+      <header class="turn-head">
+        <div class="turn-text">
+          <p class="turn-eyebrow"><span class="pulse" aria-hidden="true"></span> Turno abierto</p>
+          <h2 id="turn-title" class="turn-title num">{{ folioOf(session) }}</h2>
+          <p class="turn-meta">Desde {{ when(session.openedAt) }} · {{ session.userName }}</p>
+        </div>
+        <div class="turn-actions">
+          <button posButton variant="secondary" icon="arrow-down" (click)="movement('in')">
+            Entrada
+          </button>
+          <button posButton variant="secondary" icon="arrow-up" (click)="movement('out')">
+            Retiro
+          </button>
+          <button posButton icon="lock" (click)="closeTurn(session)">Hacer corte</button>
+        </div>
+      </header>
+
+      @if (tiles(); as t) {
+        <div class="tiles">
+          <pos-stat-tile
+            label="Efectivo esperado"
+            icon="wallet"
+            tone="brand"
+            [value]="t.expected"
+            detail="Lo que debe haber en el cajón"
+          />
+          <pos-stat-tile
+            label="Vendido"
+            icon="receipt"
+            tone="success"
+            [value]="t.sold"
+            [detail]="t.tickets"
+          />
+          <pos-stat-tile label="Fondo inicial" icon="power" tone="neutral" [value]="t.float" />
+          <pos-stat-tile
+            label="Entradas / retiros"
+            icon="arrow-left-right"
+            tone="neutral"
+            [value]="t.flows"
+          />
+        </div>
+      }
+
+      <div class="panels">
+        <pos-card heading="Cuadre de efectivo">
+          <pos-cash-breakdown [session]="session" />
+        </pos-card>
+        <pos-card heading="Entradas y retiros">
+          <pos-cash-movements [movements]="session.movements" />
+        </pos-card>
+      </div>
+    </section>
+  } @else {
+    <pos-card class="closed">
+      <pos-empty-state
+        icon="wallet"
+        heading="Tu caja está cerrada"
+        message="Ábrela desde el punto de venta con el fondo inicial para empezar a vender."
+      >
+        <a posButton routerLink="/venta" icon="cart">Ir al punto de venta</a>
+      </pos-empty-state>
+    </pos-card>
+  }
+
+  <section class="history" aria-labelledby="history-title">
+    <h2 id="history-title" class="section-title">
+      {{ isManager() ? 'Turnos del negocio' : 'Mis turnos' }}
+    </h2>
+    <div class="pos-filters">
+      <pos-input label="Desde" type="date" [(value)]="from" />
+      <pos-input label="Hasta" type="date" [(value)]="to" />
+      <pos-select label="Estado" [options]="statusOptions" [(value)]="status" />
+    </div>
+
+    <pos-table
+      caption="Turnos de caja"
+      [columns]="columns()"
+      [rows]="rows()"
+      [loading]="history.isLoading()"
+      [page]="meta()"
+      (pageChange)="page.set($event)"
+      emptyIcon="wallet"
+      emptyTitle="Sin turnos"
+      emptyMessage="No hay turnos con estos filtros."
+    >
+      <ng-template posCell="folio" [posCellOf]="rows()" let-s>
+        <span class="cell-stack">
+          <span class="num code">{{ folioOf(s) }}</span>
+          @if (s.status === 'open') {
+            <pos-badge tone="brand">Abierta</pos-badge>
+          }
+        </span>
+      </ng-template>
+      <ng-template posCell="differenceCents" [posCellOf]="rows()" let-s>
+        @if (differenceOf(s); as diff) {
+          <span class="diff">
+            <pos-badge [tone]="diff.tone">{{ diff.label }}</pos-badge>
+            @if (s.differenceCents !== 0) {
+              <span class="num">{{ s.differenceCents | money }}</span>
+            }
+          </span>
+        } @else {
+          <span class="muted">En curso</span>
+        }
+      </ng-template>
+      <ng-template posCell="actions" [posCellOf]="rows()" let-s>
+        <span class="row-actions">
+          <button
+            posButton
+            variant="ghost"
+            size="sm"
+            icon="eye"
+            iconOnly
+            [attr.aria-label]="'Ver turno ' + folioOf(s)"
+            (click)="open(s)"
+          ></button>
+        </span>
+      </ng-template>
+    </pos-table>
+  </section>
+</pos-business-gate>

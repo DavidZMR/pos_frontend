@@ -39,9 +39,11 @@
 }
 
 /* Código corto de producto (tipo PLU). */
+/* Códigos y folios ("V-000012"): nunca se parten en el guion. */
 .code {
   font-weight: 600;
   color: var(--brand-ink);
+  white-space: nowrap;
 }
 
 /* Unidad tras un precio: "$389.00 /kg". */

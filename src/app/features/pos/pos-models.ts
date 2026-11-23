@@ -108,5 +108,38 @@ export interface Sale {
   createdAt: string;
 }
 
+/** Resultado del corte: contado − esperado. */
+export function cashDifference(differenceCents: number): {
+  label: string;
+  tone: 'success' | 'warning' | 'danger';
+} {
+  if (differenceCents === 0) return { label: 'Cuadra', tone: 'success' };
+  return differenceCents > 0
+    ? { label: 'Sobrante', tone: 'warning' }
+    : { label: 'Faltante', tone: 'danger' };
+}
+
+/** Totales del turno: en vivo (`summary`) si está abierto, congelados en el corte si está cerrado. */
+export function sessionTotals(session: CashSession): SessionSummary {
+  if (session.summary) return session.summary;
+  const cashIn = session.movements
+    .filter((m) => m.type === 'in')
+    .reduce((sum, m) => sum + m.amountCents, 0);
+  const cashOut = session.movements
+    .filter((m) => m.type === 'out')
+    .reduce((sum, m) => sum + m.amountCents, 0);
+  return {
+    salesCount: session.salesCount,
+    salesTotalCents: session.salesTotalCents,
+    cancelledCount: session.cancelledCount,
+    byMethod: session.byMethod,
+    cashInCents: cashIn,
+    cashOutCents: cashOut,
+    expectedCashCents:
+      session.expectedCashCents ??
+      session.openingFloatCents + session.byMethod.cash + cashIn - cashOut,
+  };
+}
+
 export const saleFolio = (folio: number) => `V-${String(folio).padStart(6, '0')}`;
 export const sessionFolio = (folio: number) => `C-${String(folio).padStart(6, '0')}`;
