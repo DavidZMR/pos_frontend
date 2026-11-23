@@ -20,6 +20,7 @@
 /* Celda con texto principal y secundario (nombre + detalle). */
 .cell-stack {
   display: grid;
+  justify-items: start; /* insignias del tamaño de su texto */
   gap: 2px;
 
   .primary {

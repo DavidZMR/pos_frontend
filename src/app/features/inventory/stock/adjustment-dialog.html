@@ -1,0 +1,57 @@
+<form novalidate (submit)="save(); $event.preventDefault()">
+  <pos-dialog
+    heading="Ajustar existencia"
+    [description]="product.code + ' · ' + product.name + ' — hoy: ' + current"
+  >
+    <div class="body">
+      <fieldset class="modes">
+        <legend class="visually-hidden">Tipo de ajuste</legend>
+        @for (mode of modes; track mode.value) {
+          <label class="mode" [class.selected]="model().mode === mode.value">
+            <input
+              type="radio"
+              name="mode"
+              class="visually-hidden"
+              [value]="mode.value"
+              [checked]="model().mode === mode.value"
+              (change)="selectMode(mode.value)"
+            />
+            <span class="mode-label">{{ mode.label }}</span>
+            <span class="mode-help">{{ mode.help }}</span>
+          </label>
+        }
+      </fieldset>
+
+      <div class="grid">
+        <pos-qty-input
+          [label]="qtyLabel()"
+          [unit]="product.unit"
+          [formField]="adjustForm.qtyBase"
+        />
+        <pos-select label="Motivo" [options]="reasonOptions" [formField]="adjustForm.reason" />
+      </div>
+
+      <div class="preview" [class.preview--negative]="preview().negative" role="status">
+        <span>Quedará en</span>
+        <strong class="num">{{ preview().after }}</strong>
+        @if (preview().delta !== 0) {
+          <span class="delta num" [class.down]="preview().delta < 0">
+            ({{ preview().delta > 0 ? '+' : '−' }}{{ preview().deltaText }})
+          </span>
+        }
+      </div>
+
+      <pos-textarea
+        label="Nota"
+        placeholder="Opcional: qué pasó, quién lo revisó…"
+        [rows]="2"
+        [formField]="adjustForm.note"
+      />
+    </div>
+
+    <ng-container dialogActions>
+      <button posButton variant="secondary" type="button" (click)="ref.close()">Cancelar</button>
+      <button posButton type="submit" icon="check" [loading]="saving()">Guardar ajuste</button>
+    </ng-container>
+  </pos-dialog>
+</form>

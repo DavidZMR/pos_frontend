@@ -36,9 +36,10 @@ const ICON: Record<ToastTone, IconName> = {
     </div>
   `,
   styles: `
+    /* Arriba a la derecha: nunca tapa los botones de acción (Cobrar, Registrar) que van abajo. */
     .stack {
       position: fixed;
-      inset-block-end: var(--space-6);
+      inset-block-start: calc(var(--topbar-h) + var(--space-3));
       inset-inline-end: var(--space-6);
       z-index: 1100;
       display: grid;

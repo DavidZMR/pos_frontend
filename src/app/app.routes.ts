@@ -59,6 +59,39 @@ export const routes: Routes = [
           import('./features/catalog/categories/categories-page').then((m) => m.CategoriesPage),
       },
       {
+        path: 'almacen',
+        canMatch: [roleGuard('superadmin', 'admin')],
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'existencias' },
+          {
+            path: 'existencias',
+            title: `Existencias · ${TITLE}`,
+            loadComponent: () =>
+              import('./features/inventory/stock/stock-page').then((m) => m.StockPage),
+          },
+          {
+            path: 'entradas',
+            title: `Entradas de mercancía · ${TITLE}`,
+            loadComponent: () =>
+              import('./features/inventory/purchases/purchases-page').then((m) => m.PurchasesPage),
+          },
+          {
+            path: 'entradas/nueva',
+            title: `Nueva entrada · ${TITLE}`,
+            loadComponent: () =>
+              import('./features/inventory/purchases/purchase-entry-page').then(
+                (m) => m.PurchaseEntryPage,
+              ),
+          },
+          {
+            path: 'movimientos',
+            title: `Movimientos · ${TITLE}`,
+            loadComponent: () =>
+              import('./features/inventory/movements/movements-page').then((m) => m.MovementsPage),
+          },
+        ],
+      },
+      {
         path: 'proveedores',
         title: `Proveedores · ${TITLE}`,
         canMatch: [roleGuard('superadmin', 'admin')],

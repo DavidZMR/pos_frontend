@@ -34,6 +34,19 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    label: 'Almacén',
+    items: [
+      { label: 'Existencias', path: '/almacen/existencias', icon: 'warehouse', roles: MANAGERS },
+      { label: 'Entradas', path: '/almacen/entradas', icon: 'truck', roles: MANAGERS },
+      {
+        label: 'Movimientos',
+        path: '/almacen/movimientos',
+        icon: 'arrow-left-right',
+        roles: MANAGERS,
+      },
+    ],
+  },
+  {
     label: 'Administración',
     items: [
       { label: 'Negocios', path: '/negocios', icon: 'store', roles: ['superadmin'] },
