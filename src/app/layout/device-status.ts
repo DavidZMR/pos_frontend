@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { PrinterStore } from '../core/hardware/printer-store';
 import { ScaleStore } from '../core/hardware/scale-store';
 import { PosIcon } from '../shared/ui';
 
@@ -9,20 +10,32 @@ const LABEL = {
   error: 'desconectada',
 } as const;
 
-/** Estado de la báscula en la barra superior (solo si esta PC tiene báscula configurada). */
+/** Báscula e impresora en la barra superior (cada una solo si esta PC la tiene configurada). */
 @Component({
-  selector: 'pos-scale-indicator',
+  selector: 'pos-device-status',
+  host: { class: 'devices' },
   imports: [PosIcon],
   template: `
     @if (view(); as v) {
-      <span class="indicator" [class]="v.state" [attr.title]="v.message" role="status">
+      <span class="indicator scale" [class]="v.state" [attr.title]="v.message" role="status">
         <pos-icon name="scale" [size]="16" />
         <span class="dot" aria-hidden="true"></span>
         <span class="text">Báscula {{ v.label }}</span>
       </span>
     }
+    @if (printer(); as p) {
+      <span class="indicator printer" [class]="p.state" [attr.title]="p.message" role="status">
+        <pos-icon name="printer" [size]="16" />
+        <span class="dot" aria-hidden="true"></span>
+        <span class="text">{{ p.label }}</span>
+      </span>
+    }
   `,
   styles: `
+    :host {
+      display: flex;
+      gap: var(--space-2);
+    }
     .indicator {
       display: inline-flex;
       align-items: center;
@@ -62,8 +75,21 @@ const LABEL = {
     }
   `,
 })
-export class PosScaleIndicator {
+export class PosDeviceStatus {
   private readonly scale = inject(ScaleStore);
+  private readonly printers = inject(PrinterStore);
+
+  protected readonly printer = computed(() => {
+    const name = this.printers.config().name;
+    if (!name || !this.printers.loaded()) return null;
+    return this.printers.ready()
+      ? { state: 'connected', label: 'Impresora lista', message: name }
+      : {
+          state: 'error',
+          label: 'Impresora no encontrada',
+          message: `"${name}" no aparece en Windows`,
+        };
+  });
 
   protected readonly view = computed(() => {
     const { state, message } = this.scale.status();
