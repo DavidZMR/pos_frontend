@@ -1,9 +1,9 @@
 {
   "name": "puntoventa",
-  "productName": "PuntoVenta",
+  "productName": "El Atlántico",
   "version": "0.1.0",
-  "description": "Punto de venta para marisquerías y comercios",
-  "author": "PuntoVenta",
+  "description": "Punto de venta de la marisquería El Atlántico",
+  "author": "El Atlántico",
   "license": "UNLICENSED",
   "private": true,
   "main": "main.cjs",

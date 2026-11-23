@@ -1,4 +1,5 @@
 import { Service, computed, inject } from '@angular/core';
+import { BRAND } from '../../../core/branding';
 import { CurrentBusiness } from '../../../core/business/current-business';
 import { PrinterStore } from '../../../core/hardware/printer-store';
 import { ToastService } from '../../../shared/ui';
@@ -52,7 +53,7 @@ export class TicketPrinter {
     success: string,
   ): Promise<boolean> {
     const business: TicketBusiness = (await this.business.get()) ?? {
-      name: 'PuntoVenta',
+      name: BRAND.name,
       ticket: { header: '', footer: '' },
     };
     const html = build(business, { widthMm: this.printer.config().widthMm });

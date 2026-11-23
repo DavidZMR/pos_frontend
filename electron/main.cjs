@@ -1,9 +1,10 @@
-// Proceso principal de PuntoVenta (Electron).
+// Proceso principal de la app de escritorio (Electron).
 // Flujo: instancia única → protocolo app:// para la UI → backend embebido (o API externa) → ventana.
 const { app, BrowserWindow, Menu, dialog, net, protocol, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { DATA_DIR, DISPLAY_NAME, LEAD, STRONG } = require('./branding.cjs');
 const { startBackend } = require('./lib/backend.cjs');
 const { loadConfig } = require('./lib/config-store.cjs');
 const { setupHardware } = require('./lib/hardware.cjs');
@@ -22,6 +23,12 @@ protocol.registerSchemesAsPrivileged([
     privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true },
   },
 ]);
+
+// Carpeta de datos fija (config.json, registro) aunque cambie el nombre visible. Las pruebas
+// pasan --user-data-dir para aislarse; se respeta.
+if (!app.commandLine.hasSwitch('user-data-dir')) {
+  app.setPath('userData', path.join(app.getPath('appData'), DATA_DIR));
+}
 
 let log;
 let mainWindow = null;
@@ -49,7 +56,7 @@ if (!app.requestSingleInstanceLock()) {
 async function boot() {
   log = createLogger(app.getPath('userData'));
   log.info(
-    `=== PuntoVenta v${app.getVersion()} | Electron ${process.versions.electron} | ` +
+    `=== ${DISPLAY_NAME} v${app.getVersion()} | Electron ${process.versions.electron} | ` +
       `Node ${process.versions.node} | empaquetado=${app.isPackaged} ===`,
   );
   Menu.setApplicationMenu(null);
@@ -79,7 +86,7 @@ async function boot() {
     log.error('No se pudo iniciar la aplicación', error);
     if (!splash.isDestroyed()) splash.destroy();
     dialog.showErrorBox(
-      'PuntoVenta no pudo iniciar',
+      `${DISPLAY_NAME} no pudo iniciar`,
       `${error.message}\n\nDetalle en el registro:\n${log.file}`,
     );
     app.quit();
@@ -134,7 +141,7 @@ function createMainWindow(apiUrl, onShown) {
     minWidth: 1024,
     minHeight: 640,
     show: false,
-    title: 'PuntoVenta',
+    title: DISPLAY_NAME,
     backgroundColor: '#F4F8FA',
     autoHideMenuBar: true,
     webPreferences: {
@@ -195,7 +202,7 @@ function createSplash() {
     .bar{margin:22px auto 0;width:160px;height:3px;background:#1d4459;border-radius:3px;overflow:hidden}
     .bar i{display:block;width:40%;height:100%;background:#2BA3B8;animation:m 1.2s cubic-bezier(.65,0,.35,1) infinite}
     @keyframes m{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
-  </style></head><body><div><div class="name">Punto<b>Venta</b></div>
+  </style></head><body><div><div class="name">${LEAD} <b>${STRONG}</b></div>
   <div class="msg">Iniciando…</div><div class="bar"><i></i></div></div></body></html>`;
   void splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
   return splash;
