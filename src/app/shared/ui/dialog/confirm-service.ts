@@ -15,6 +15,7 @@ export class ConfirmService {
     const ref = this.dialogs.open<boolean, ConfirmOptions>(PosConfirmDialog, {
       data: options,
       size: 'sm',
+      autoFocus: 'first-tabbable', // sin campos: foco en "Cancelar" (opción segura)
     });
     return (await firstValueFrom(ref.closed)) === true;
   }

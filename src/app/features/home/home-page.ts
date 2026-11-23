@@ -7,6 +7,9 @@ import { NAV } from '../../layout/nav';
 import { PosBadge, PosIcon, PosPageHeader } from '../../shared/ui';
 
 const DESCRIPTIONS: Record<string, string> = {
+  '/venta': 'Cobra rápido con lector, código corto o búsqueda por nombre.',
+  '/caja': 'Tu turno: fondo, retiros, ventas por forma de pago y corte.',
+  '/ventas': 'Historial de tickets, detalle y cancelaciones.',
   '/negocios': 'Da de alta negocios, edita sus datos y desactívalos.',
   '/usuarios': 'Crea cuentas para tu equipo y controla quién puede entrar.',
   '/productos': 'Precios, códigos, existencias y su historial de cambios.',

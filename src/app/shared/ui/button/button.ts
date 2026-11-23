@@ -1,4 +1,4 @@
-import { Component, booleanAttribute, computed, input } from '@angular/core';
+import { Component, ElementRef, booleanAttribute, computed, inject, input } from '@angular/core';
 import { PosIcon } from '../icon/icon';
 import type { IconName } from '../icon/icons';
 import { PosSpinner } from '../spinner/spinner';
@@ -32,6 +32,7 @@ const ICON_SIZE: Record<ButtonSize, number> = { sm: 16, md: 18, lg: 20, xl: 22 }
   `,
   host: {
     '[class]': 'classes()',
+    '[attr.type]': 'isAnchor ? null : type()',
     '[attr.disabled]': 'isDisabled() ? "" : null',
     '[attr.aria-disabled]': 'isDisabled() || null',
     '[attr.aria-busy]': 'loading() || null',
@@ -39,6 +40,11 @@ const ICON_SIZE: Record<ButtonSize, number> = { sm: 16, md: 18, lg: 20, xl: 22 }
   styleUrl: './button.scss',
 })
 export class PosButton {
+  /**
+   * `button` por defecto (el navegador usaría `submit`): así ningún botón de un formulario
+   * —p. ej. el "×" de un diálogo— se dispara con Enter por accidente. Envía solo con type="submit".
+   */
+  readonly type = input<'button' | 'submit' | 'reset'>('button');
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
   readonly icon = input<IconName>();
@@ -48,6 +54,7 @@ export class PosButton {
   readonly loading = input(false, { transform: booleanAttribute });
   readonly disabled = input(false, { transform: booleanAttribute });
 
+  protected readonly isAnchor = (inject(ElementRef).nativeElement as HTMLElement).tagName === 'A';
   protected readonly iconSize = computed(() => ICON_SIZE[this.size()]);
   protected readonly isDisabled = computed(() => this.disabled() || this.loading());
   protected readonly classes = computed(() =>

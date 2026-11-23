@@ -25,8 +25,10 @@ import { uniqueId } from '../field/field-state';
         }
       </div>
       @if (dialogRef && closable()) {
+        <!-- type="button": si no, sería el botón por defecto y Enter en un campo CERRARÍA el diálogo. -->
         <button
           posButton
+          type="button"
           variant="ghost"
           size="sm"
           icon="x"

@@ -1,0 +1,120 @@
+@if (sale(); as done) {
+  <pos-dialog heading="Venta registrada" [description]="folio()" [closable]="false">
+    <div class="done" role="status">
+      <span class="done-mark"><pos-icon name="circle-check" [size]="40" /></span>
+      @if (done.changeCents > 0) {
+        <p class="done-label">Cambio</p>
+        <p class="done-amount num">{{ done.changeCents | money }}</p>
+        <p class="done-detail num">
+          Recibido {{ done.cashReceivedCents | money }} · Total {{ done.totalCents | money }}
+        </p>
+      } @else {
+        <p class="done-label">Total cobrado</p>
+        <p class="done-amount num">{{ done.totalCents | money }}</p>
+        <p class="done-detail">{{ labels[done.payments[0]?.method ?? 'cash'].label }}</p>
+      }
+    </div>
+    <ng-container dialogActions>
+      <button #doneButton posButton size="lg" icon="cart" type="button" (click)="finish()" block>
+        Nueva venta (Enter)
+      </button>
+    </ng-container>
+  </pos-dialog>
+} @else {
+  <pos-dialog
+    heading="Cobrar"
+    [description]="data.itemsCount + ' renglones · IVA incluido ' + (data.taxCents | money)"
+  >
+    <div class="pay">
+      <div class="total">
+        <span class="total-label">Total a cobrar</span>
+        <strong class="total-amount num">{{ data.totalCents | money }}</strong>
+      </div>
+
+      <fieldset class="methods">
+        <legend class="section-label">Forma de pago</legend>
+        @for (m of methods; track m) {
+          <label class="method" [class.selected]="method() === m">
+            <input
+              type="radio"
+              name="method"
+              class="visually-hidden"
+              [value]="m"
+              [checked]="method() === m"
+              (change)="selectMethod(m)"
+            />
+            <pos-icon [name]="labels[m].icon" [size]="22" />
+            <span>{{ labels[m].label }}</span>
+          </label>
+        }
+      </fieldset>
+
+      @if (method() === 'cash') {
+        <div class="cash">
+          <pos-money-input
+            #receivedInput
+            label="Recibido"
+            hint="Vacío = pago exacto"
+            [(value)]="received"
+          />
+          <div class="quick" role="group" aria-label="Montos rápidos">
+            <button
+              posButton
+              variant="secondary"
+              size="sm"
+              type="button"
+              (click)="setReceived(data.totalCents)"
+            >
+              Exacto
+            </button>
+            @for (amount of suggestions; track amount) {
+              <button
+                posButton
+                variant="secondary"
+                size="sm"
+                type="button"
+                (click)="setReceived(amount)"
+              >
+                {{ amount | money }}
+              </button>
+            }
+          </div>
+          <div class="change" [class.change--missing]="missing() > 0" aria-live="polite">
+            @if (missing() > 0) {
+              <span>Faltan</span>
+              <strong class="num">{{ missing() | money }}</strong>
+            } @else {
+              <span>Cambio</span>
+              <strong class="num">{{ changeText() }}</strong>
+            }
+          </div>
+        </div>
+      } @else {
+        <p class="note">
+          La forma de pago es informativa: se registra para el corte y los reportes.
+        </p>
+      }
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+    </div>
+
+    <ng-container dialogActions>
+      <button posButton variant="secondary" type="button" (click)="ref.close()">
+        Volver (Esc)
+      </button>
+      <button
+        posButton
+        size="lg"
+        icon="check"
+        type="button"
+        [loading]="saving()"
+        [disabled]="missing() > 0"
+        (click)="pay()"
+      >
+        Cobrar (Enter)
+      </button>
+    </ng-container>
+  </pos-dialog>
+}

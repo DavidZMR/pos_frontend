@@ -13,7 +13,8 @@ const SESSION_KEY = 'pos.session';
 const HOME_BY_ROLE: Record<Role, string> = {
   superadmin: '/inicio',
   admin: '/inicio',
-  employee: '/inicio',
+  // El cajero entra directo a vender.
+  employee: '/venta',
 };
 
 /**

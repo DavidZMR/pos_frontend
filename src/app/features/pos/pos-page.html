@@ -1,0 +1,266 @@
+<pos-business-gate>
+  @if (session.current() === undefined) {
+    <div class="center"><pos-spinner [size]="28" label="Cargando caja" /></div>
+  } @else if (!session.current()) {
+    <!-- ---- Caja cerrada: apertura con fondo ---- -->
+    <div class="center">
+      <form class="open-card" novalidate (submit)="openSession(); $event.preventDefault()">
+        <span class="open-mark"><pos-icon name="wallet" [size]="28" /></span>
+        <h1 class="open-title">Abre la caja para vender</h1>
+        <p class="open-text">
+          Cuenta el efectivo con el que empiezas el turno (fondo). Al final harás el corte contra lo
+          que haya en caja.
+        </p>
+        <pos-money-input label="Fondo inicial" [(value)]="openingFloat" />
+        <button posButton size="xl" icon="power" type="submit" block [loading]="opening()">
+          Abrir caja
+        </button>
+      </form>
+    </div>
+  } @else {
+    <div class="pos">
+      <!-- ---- Productos ---- -->
+      <section class="catalog" aria-label="Productos">
+        <div class="search-bar">
+          <label class="visually-hidden" for="pos-search">Buscar producto</label>
+          <div class="search">
+            <pos-icon name="barcode" [size]="24" />
+            <input
+              #search
+              id="pos-search"
+              class="search-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Código, código de barras o nombre · 3*101 para multiplicar (F2)"
+              role="combobox"
+              aria-controls="pos-results"
+              [attr.aria-expanded]="searching()"
+              [attr.aria-activedescendant]="active() >= 0 ? 'pos-prod-' + active() : null"
+              [value]="term()"
+              (input)="term.set(search.value)"
+              (keydown)="onSearchKeydown($event)"
+            />
+            @if (multiplier(); as qty) {
+              <span class="multiplier num" aria-live="polite">× {{ qty }}</span>
+            }
+            @if (term()) {
+              <button
+                posButton
+                variant="ghost"
+                size="sm"
+                icon="x"
+                iconOnly
+                type="button"
+                aria-label="Limpiar búsqueda"
+                (click)="resetSearch(); focusSearch()"
+              ></button>
+            }
+          </div>
+        </div>
+
+        @if (!searching()) {
+          <nav class="categories" aria-label="Categorías">
+            <button
+              type="button"
+              class="cat"
+              [class.on]="category() === null"
+              (click)="category.set(null)"
+            >
+              Todo
+            </button>
+            @for (c of catalog.categories(); track c.id) {
+              <button
+                type="button"
+                class="cat"
+                [class.on]="category() === c.id"
+                (click)="category.set(c.id)"
+              >
+                {{ c.name }}
+              </button>
+            }
+          </nav>
+        }
+
+        <div class="grid-wrap">
+          @if (catalog.resource.isLoading() && !catalog.products().length) {
+            <div class="center"><pos-spinner [size]="28" label="Cargando productos" /></div>
+          } @else {
+            <ul class="grid" id="pos-results" role="listbox" aria-label="Productos">
+              @for (product of results(); track product.id; let i = $index) {
+                <li
+                  class="card"
+                  role="option"
+                  [id]="'pos-prod-' + i"
+                  [class.active]="i === active()"
+                  [attr.aria-selected]="i === active()"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="pick(product)"
+                >
+                  <span class="card-code num">{{ product.code }}</span>
+                  <span class="card-name">{{ product.name }}</span>
+                  <span class="card-price num">
+                    {{ product.salePriceCents | money
+                    }}<span class="per">/{{ units[product.unit].label }}</span>
+                  </span>
+                  <span class="card-stock num" [class]="'card-stock ' + stockClass(product)">
+                    @if (product.unit !== 'pz') {
+                      <pos-icon name="scale" [size]="12" />
+                    }
+                    {{ product.stock | qty: product.unit }}
+                  </span>
+                </li>
+              } @empty {
+                <li class="no-results">
+                  <pos-empty-state
+                    icon="search"
+                    [heading]="searching() ? 'Sin resultados' : 'Sin productos'"
+                    [message]="
+                      searching()
+                        ? 'Prueba con el código, el código de barras o parte del nombre.'
+                        : 'Este negocio aún no tiene productos activos.'
+                    "
+                  />
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </section>
+
+      <!-- ---- Ticket ---- -->
+      <section class="ticket" aria-label="Ticket de venta">
+        <header class="ticket-head">
+          <div>
+            <h2 class="ticket-title">Venta en curso</h2>
+            <p class="ticket-meta">{{ cashierName() }} · {{ sessionLabel() }}</p>
+          </div>
+          <button
+            posButton
+            variant="ghost"
+            size="sm"
+            icon="trash"
+            type="button"
+            [disabled]="cart.isEmpty()"
+            (click)="clearTicket()"
+          >
+            Vaciar
+          </button>
+        </header>
+
+        <ol class="lines" #ticketList aria-label="Productos en el ticket">
+          @for (line of cart.lines(); track line.key) {
+            <li
+              class="line"
+              [attr.data-key]="line.key"
+              [class.recent]="line.key === cart.lastKey()"
+              [class.unavailable]="!line.product"
+            >
+              @if (line.product; as product) {
+                <div class="line-main">
+                  <span class="line-name">{{ product.name }}</span>
+                  <button
+                    type="button"
+                    class="line-qty num"
+                    [attr.aria-label]="'Cambiar cantidad de ' + product.name"
+                    (click)="editLine(line)"
+                  >
+                    {{ line.qtyBase | qty: product.unit }} × {{ product.salePriceCents | money }}
+                  </button>
+                </div>
+                <div class="line-side">
+                  <strong class="line-total num">{{ line.lineTotalCents | money }}</strong>
+                  <div class="line-actions">
+                    @if (product.unit === 'pz') {
+                      <button
+                        posButton
+                        variant="ghost"
+                        size="sm"
+                        icon="minus"
+                        iconOnly
+                        type="button"
+                        [attr.aria-label]="'Quitar uno de ' + product.name"
+                        (click)="step(line, -1)"
+                      ></button>
+                      <button
+                        posButton
+                        variant="ghost"
+                        size="sm"
+                        icon="plus"
+                        iconOnly
+                        type="button"
+                        [attr.aria-label]="'Agregar uno de ' + product.name"
+                        (click)="step(line, 1)"
+                      ></button>
+                    }
+                    <button
+                      posButton
+                      variant="ghost"
+                      size="sm"
+                      icon="x"
+                      iconOnly
+                      type="button"
+                      [attr.aria-label]="'Quitar ' + product.name + ' del ticket'"
+                      (click)="remove(line)"
+                    ></button>
+                  </div>
+                </div>
+              } @else {
+                <div class="line-main">
+                  <span class="line-name">Producto ya no disponible</span>
+                  <span class="line-qty">Quítalo para poder cobrar</span>
+                </div>
+                <button
+                  posButton
+                  variant="ghost"
+                  size="sm"
+                  icon="x"
+                  iconOnly
+                  type="button"
+                  aria-label="Quitar producto no disponible"
+                  (click)="remove(line)"
+                ></button>
+              }
+            </li>
+          } @empty {
+            <li class="lines-empty">
+              <pos-empty-state
+                icon="cart"
+                heading="Ticket vacío"
+                message="Escanea o busca un producto para empezar."
+              />
+            </li>
+          }
+        </ol>
+
+        <footer class="ticket-foot">
+          <dl class="totals">
+            <div>
+              <dt>Renglones</dt>
+              <dd class="num">{{ cart.count() }}</dd>
+            </div>
+            <div>
+              <dt>IVA incluido</dt>
+              <dd class="num">{{ cart.taxCents() | money }}</dd>
+            </div>
+            <div class="grand">
+              <dt>Total</dt>
+              <dd class="num">{{ cart.totalCents() | money }}</dd>
+            </div>
+          </dl>
+          <button
+            posButton
+            size="xl"
+            icon="wallet"
+            type="button"
+            block
+            [disabled]="cart.isEmpty()"
+            (click)="checkout()"
+          >
+            Cobrar (F12)
+          </button>
+          <p class="hints">F2 buscar · Enter agregar · F4 cantidad · F12 cobrar</p>
+        </footer>
+      </section>
+    </div>
+  }
+</pos-business-gate>

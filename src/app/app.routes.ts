@@ -32,6 +32,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
       },
       {
+        path: 'venta',
+        title: `Punto de venta · ${TITLE}`,
+        data: { fullBleed: true },
+        loadComponent: () => import('./features/pos/pos-page').then((m) => m.PosPage),
+      },
+      {
         path: 'negocios',
         title: `Negocios · ${TITLE}`,
         canMatch: [roleGuard('superadmin')],
