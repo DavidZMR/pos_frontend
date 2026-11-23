@@ -48,6 +48,20 @@ describe('PosMoneyInput', () => {
     expect(money.value).toBe('1,234.50');
   });
 
+  it('al enfocar selecciona todo el monto ya mismo: escribir encima lo reemplaza', async () => {
+    const { fixture, money } = await setup();
+    fixture.componentInstance.model.set({ price: 512345, qty: 0 });
+    await fixture.whenStable();
+    expect(money.value).toBe('5,123.45');
+
+    money.dispatchEvent(new Event('focus'));
+    // Síncrono: quien teclee justo después (o un Tab + escribir) reemplaza el texto completo.
+    expect(money.value).toBe('5123.45');
+    expect([money.selectionStart, money.selectionEnd]).toEqual([0, 7]);
+    await fixture.whenStable();
+    expect([money.selectionStart, money.selectionEnd]).toEqual([0, 7]);
+  });
+
   it('texto inválido no cambia el valor y avisa; al salir vuelve al último válido', async () => {
     const { fixture, money, type, blur } = await setup();
     await type(money, '12.345');
@@ -67,6 +81,17 @@ describe('PosQtyInput', () => {
     expect(fixture.componentInstance.model().qty).toBe(1250);
     await blur(qty);
     expect(qty.value).toBe('1.250');
+  });
+
+  it('al enfocar selecciona toda la cantidad', async () => {
+    const { fixture, qty } = await setup();
+    fixture.componentInstance.model.set({ price: 0, qty: 1250 });
+    await fixture.whenStable();
+    qty.dispatchEvent(new Event('focus'));
+    expect(qty.value).toBe('1.250');
+    expect([qty.selectionStart, qty.selectionEnd]).toEqual([0, 5]);
+    await fixture.whenStable();
+    expect([qty.selectionStart, qty.selectionEnd]).toEqual([0, 5]);
   });
 
   it('piezas solo enteras', async () => {

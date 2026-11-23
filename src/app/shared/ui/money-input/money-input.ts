@@ -8,7 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import type { FormValueControl } from '@angular/forms/signals';
-import { parseMoneyToCents } from '../../utils/money';
+import { centsToDecimalString, parseMoneyToCents } from '../../utils/money';
 import { PosFieldBase } from '../field/field-state';
 
 const display = new Intl.NumberFormat('es-MX', {
@@ -88,9 +88,14 @@ export class PosMoneyInput extends PosFieldBase implements FormValueControl<numb
   private readonly native = viewChild.required<ElementRef<HTMLInputElement>>('native');
 
   protected onFocus(): void {
-    this.draft.set(this.value() === 0 ? '' : (this.value() / 100).toFixed(2));
+    const draft = this.value() === 0 ? '' : centsToDecimalString(this.value());
+    this.draft.set(draft);
     this.focused.set(true);
-    queueMicrotask(() => this.native().nativeElement.select());
+    // El borrador se escribe YA en el DOM y se selecciona: si se esperara al render, el render
+    // reemplazaría el texto, se perdería la selección y lo tecleado se agregaría al final.
+    const native = this.native().nativeElement;
+    native.value = draft;
+    native.select();
   }
 
   protected onInput(raw: string): void {
