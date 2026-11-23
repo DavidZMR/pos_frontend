@@ -19,7 +19,7 @@ const prebuilds = join(
 );
 
 const checks = [
-  ['Ejecutable PuntoVenta.exe', existsSync(join(unpacked, 'PuntoVenta.exe'))],
+  ['Ejecutable ElAtlantico.exe', existsSync(join(unpacked, 'ElAtlantico.exe'))],
   ['app.asar (UI + proceso principal)', existsSync(join(resources, 'app.asar'))],
   [
     'serialport: binario nativo win32-x64 fuera del asar',

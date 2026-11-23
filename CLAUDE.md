@@ -14,7 +14,7 @@ Angular 22 (standalone, zoneless, OnPush por defecto, Signal Forms) · TypeScrip
 | `npm run build` | Build de producción |
 | `npx ng generate component|service|pipe|guard ...` | Generar código con el CLI (siempre) |
 | `npm run electron:dev` | App de escritorio contra `ng serve` + backend dev |
-| `npm run dist` | Instalador `release/PuntoVenta-Setup-x.y.z.exe` (ver skill `pos-packaging`) |
+| `npm run dist` | Instalador `release/ElAtlantico-Setup-x.y.z.exe` (ver skill `pos-packaging`) |
 
 ## Estructura
 ```
@@ -51,6 +51,7 @@ scripts/         stage-backend, verificación de empaquetado
   - Configuración por PC en `/equipo` (admin). Lógica serial en `electron/lib/scale/`, probada con `npm run test:electron` (`SerialPortMock`).
   - Impresora: `PrinterStore` (`ready` = configurada **e** instalada en Windows). Tickets como HTML puro en `features/pos/ticket/ticket-html.ts` (escapar todo dato; 58/80 mm, negro); `TicketPrinter` los imprime (venta con F9 o automático, reimpresión, corte). Si no hay impresora, no se ofrece imprimir.
   - Datos del ticket (nombre, RFC, dirección, encabezado, pie) en `/equipo` → `PATCH /businesses/current`, con vista previa en `<iframe sandbox="">`.
+- **Marca visible** ("El Atlántico"): `src/app/core/branding.ts` (UI) + `electron/branding.cjs` (ventana, carga) + `productName` en `electron-builder.yml` (instalador). Ejecutable `ElAtlantico.exe` y carpeta de datos `%APPDATA%\PuntoVenta` fijos en ASCII. El nombre del **negocio** es dato (Negocios / Equipo → Datos del ticket).
 - Textos de UI en español.
 
 ---

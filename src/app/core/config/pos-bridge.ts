@@ -12,7 +12,7 @@ export interface PosBridgeConfig {
 export type ScaleParity = 'none' | 'even' | 'odd';
 export type ScaleMode = 'continuous' | 'request';
 
-/** Báscula de esta PC (se guarda en %APPDATA%\PuntoVenta\config.json). */
+/** Báscula de esta PC (se guarda en config.json, en los datos de la app de esa PC). */
 export interface ScaleConfig {
   enabled: boolean;
   path: string;

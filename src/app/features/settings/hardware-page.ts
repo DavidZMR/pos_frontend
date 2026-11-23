@@ -37,7 +37,7 @@ import { PosTicketSettings } from './ticket-settings';
           <pos-empty-state
             icon="settings"
             heading="Báscula e impresora: solo en la app de escritorio"
-            message="Se configuran desde PuntoVenta instalado en la computadora de la caja. En el navegador el peso se escribe a mano y no se imprimen tickets."
+            message="Se configuran desde la app instalada en la computadora de la caja. En el navegador el peso se escribe a mano y no se imprimen tickets."
           />
         </pos-card>
       } @else if (config.isLoading()) {

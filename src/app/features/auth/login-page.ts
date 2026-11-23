@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { toApiError, unwrap } from '../../core/api/api-types';
 import { AuthStore } from '../../core/auth/auth-store';
 import { ConfigService } from '../../core/config/config-service';
+import { BRAND } from '../../core/branding';
 import { PosButton, PosIcon, PosInput } from '../../shared/ui';
 import { buildIsobaths, buildRoute } from './nautical-chart';
 
@@ -35,6 +36,7 @@ export class LoginPage {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
   protected readonly config = inject(ConfigService);
+  protected readonly brand = BRAND;
 
   protected readonly isobaths = buildIsobaths();
   protected readonly route = buildRoute();

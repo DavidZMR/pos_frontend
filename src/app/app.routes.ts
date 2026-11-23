@@ -1,8 +1,9 @@
 import { isDevMode } from '@angular/core';
 import type { Routes } from '@angular/router';
 import { authGuard, guestGuard, roleGuard } from './core/auth/guards';
+import { BRAND } from './core/branding';
 
-const TITLE = 'PuntoVenta';
+const TITLE = BRAND.name;
 
 export const routes: Routes = [
   {

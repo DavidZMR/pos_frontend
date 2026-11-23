@@ -1,7 +1,10 @@
 # Instalador de Windows (NSIS). Ver skill pos-packaging.
 appId: com.puntoventa.desktop
-productName: PuntoVenta
-copyright: Copyright © 2026 PuntoVenta
+# Nombre visible (instalador, accesos directos, Programas y características). Ver electron/branding.cjs.
+productName: El Atlántico
+# Ejecutable y archivo del instalador en ASCII: sin acentos ni espacios en rutas.
+executableName: ElAtlantico
+copyright: Copyright © 2026 El Atlántico
 
 directories:
   app: electron          # proceso principal + UI (electron/ui) → app.asar
@@ -40,7 +43,7 @@ win:
   target:
     - target: nsis
       arch: [x64]
-  artifactName: '${productName}-Setup-${version}.${ext}'
+  artifactName: 'ElAtlantico-Setup-${version}.${ext}'
 
 nsis:
   oneClick: false
@@ -48,5 +51,5 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
-  shortcutName: PuntoVenta
-  uninstallDisplayName: PuntoVenta
+  shortcutName: El Atlántico
+  uninstallDisplayName: El Atlántico
