@@ -10,7 +10,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form, min, submit } from '@angular/forms/signals';
+import { BusinessContext } from '../../core/business/business-context';
 import { ScaleStore } from '../../core/hardware/scale-store';
+import { QtyPipe } from '../../shared/pipes/qty-pipe';
 import { MoneyPipe } from '../../shared/pipes/money-pipe';
 import { PosButton, PosDialog, PosIcon, PosQtyInput } from '../../shared/ui';
 import { lineTotalCents } from '../../shared/utils/money';
@@ -21,6 +23,8 @@ export interface QtyDialogData {
   product: PosProduct;
   /** Cantidad inicial (al editar un renglón). */
   qtyBase?: number;
+  /** Lo que ya lleva el ticket de este producto en OTROS renglones (para avisar de existencia). */
+  inCartQtyBase?: number;
 }
 
 export interface QtyDialogResult {
@@ -36,7 +40,7 @@ export interface QtyDialogResult {
  */
 @Component({
   selector: 'pos-qty-dialog',
-  imports: [FormField, PosDialog, PosQtyInput, PosButton, PosIcon, MoneyPipe],
+  imports: [FormField, PosDialog, PosQtyInput, PosButton, PosIcon, MoneyPipe, QtyPipe],
   template: `
     <form novalidate (submit)="confirm(); $event.preventDefault()">
       <pos-dialog
@@ -96,16 +100,25 @@ export interface QtyDialogResult {
             </p>
           }
 
+          @if (exceedsStock()) {
+            <p class="scale warn" role="status">
+              <pos-icon name="alert" [size]="16" />
+              Solo hay {{ data.product.stock | qty: data.product.unit }} en existencia{{
+                allowNegative() ? ': quedará en negativo' : ': no alcanza para cobrar'
+              }}
+            </p>
+          }
+
           <div class="total">
             <span>Importe</span>
-            <strong class="num">{{ total() | money }}</strong>
+            <strong class="num">{{ invalid() ? '—' : (total() | money) }}</strong>
           </div>
         </div>
         <ng-container dialogActions>
           <button posButton variant="secondary" type="button" (click)="ref.close()">
             Cancelar
           </button>
-          <button posButton type="submit" icon="check" [disabled]="waitingStable()">
+          <button posButton type="submit" icon="check" [disabled]="waitingStable() || invalid()">
             {{ data.qtyBase ? 'Cambiar' : 'Agregar' }}
           </button>
         </ng-container>
@@ -178,6 +191,7 @@ export class QtyDialog {
   protected readonly ref = inject<DialogRef<QtyDialogResult>>(DialogRef);
   protected readonly data = inject<QtyDialogData>(DIALOG_DATA);
   protected readonly scale = inject(ScaleStore);
+  private readonly context = inject(BusinessContext);
 
   protected readonly isWeight = this.data.product.unit !== 'pz';
   protected readonly unitLabel = UNITS[this.data.product.unit].label;
@@ -202,6 +216,18 @@ export class QtyDialog {
       this.model().qtyBase,
       unitScale(this.data.product.unit),
     ),
+  );
+
+  /** Lo escrito no es una cantidad válida: no hay importe ni se puede agregar. */
+  protected readonly invalid = computed(() => this.qtyInput().unparsable());
+  protected readonly allowNegative = computed(
+    () => this.context.current()?.settings?.allowNegativeStock ?? true,
+  );
+  /** Aviso (no bloquea): con lo que ya lleva el ticket, pasa de la existencia. */
+  protected readonly exceedsStock = computed(
+    () =>
+      this.model().qtyBase > 0 &&
+      (this.data.inCartQtyBase ?? 0) + this.model().qtyBase > this.data.product.stock,
   );
 
   protected readonly scaleView = computed<'stable' | 'moving' | 'empty' | 'manual' | 'offline'>(
@@ -240,7 +266,7 @@ export class QtyDialog {
   }
 
   protected confirm(): void {
-    if (this.waitingStable()) return;
+    if (this.waitingStable() || this.invalid()) return;
     void submit(this.qtyForm, async () => {
       const qtyBase = this.model().qtyBase;
       const reading = this.scale.reading();

@@ -206,6 +206,27 @@ describe('buildReportWorkbook', () => {
       },
       meta,
     );
-    expect(withBusinesses.getWorksheet('Negocios')?.getCell('B5').value).toBe(1);
+    const sheet = withBusinesses.getWorksheet('Negocios');
+    expect(sheet?.getCell('B5').value).toBe(1);
+    // Fila de totales (6): margen y ticket promedio se calculan sobre los totales, no se suman.
+    expect(sheet?.getCell('A6').value).toBe('Total');
+    expect(sheet?.getCell('D6').value).toEqual({ formula: 'IF(B6=0,0,C6/B6)' });
+    expect(sheet?.getCell('F6').value).toEqual({ formula: 'IF(E6=0,0,B6/E6)' });
+  });
+
+  it('las hojas de compras muestran solo los filtros que les aplican', () => {
+    const workbook = buildReportWorkbook(ExcelJS, bundle, {
+      ...meta,
+      filtersText: 'categoría: Mariscos, pago: Efectivo',
+      purchaseFiltersText: 'categoría: Mariscos, forma de pago: no aplican a compras',
+    });
+    const header = (name: string) => String(workbook.getWorksheet(name)?.getCell('A2').value);
+    expect(header('Ventas por periodo')).toContain('pago: Efectivo');
+    for (const name of ['Compras', 'Compras por proveedor', 'Productos comprados']) {
+      expect(header(name), name).toContain('no aplican a compras');
+      expect(header(name), name).not.toContain('pago: Efectivo');
+    }
+    // "Generado: … p.m." sin punto doble.
+    expect(String(workbook.getWorksheet('Resumen')?.getCell('A4').value)).not.toContain('..');
   });
 });

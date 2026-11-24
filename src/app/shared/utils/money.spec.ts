@@ -27,6 +27,15 @@ describe('parseMoneyToCents', () => {
     expect(parseMoneyToCents('1.15')).toBe(115);
   });
 
+  it('la coma solo vale como separador de miles bien formado', () => {
+    expect(parseMoneyToCents('1,234')).toBe(123_400);
+    expect(parseMoneyToCents('1,234,567.89')).toBe(123_456_789);
+    // "1,5" NO es $15.00 ni $1.50: es ambiguo y se rechaza (antes se descartaba la coma).
+    for (const bad of ['1,5', '1,25', '12,3456', '1,23.4', '1.2,5']) {
+      expect(() => parseMoneyToCents(bad), bad).toThrow(/punto|inválido/);
+    }
+  });
+
   it.each(['', 'abc', '1.234', '1..2', '12a'])('rechaza "%s"', (input) => {
     expect(() => parseMoneyToCents(input)).toThrow(RangeError);
   });

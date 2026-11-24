@@ -16,6 +16,8 @@ export interface CartLine extends CartEntry {
   product: PosProduct | null;
   lineTotalCents: number;
   taxCents: number;
+  /** Lo que lleva el ticket de este producto (todos sus renglones) pasa de su existencia. */
+  exceedsStock: boolean;
 }
 
 /**
@@ -31,6 +33,15 @@ export class Cart {
   /** Último renglón agregado/modificado (para resaltarlo y hacer scroll). */
   readonly lastKey = signal<number | null>(null);
 
+  /** Cantidad total por producto (un producto por peso puede ir en varios renglones). */
+  private readonly qtyByProduct = computed(() => {
+    const totals = new Map<string, number>();
+    for (const e of this.entries()) {
+      totals.set(e.productId, (totals.get(e.productId) ?? 0) + e.qtyBase);
+    }
+    return totals;
+  });
+
   readonly lines = computed<CartLine[]>(() =>
     this.entries().map((entry) => {
       const product = this.catalog.get(entry.productId) ?? null;
@@ -42,6 +53,7 @@ export class Cart {
         product,
         lineTotalCents: total,
         taxCents: product ? includedTaxCents(total, product.taxRateBp) : 0,
+        exceedsStock: product ? (this.qtyByProduct().get(product.id) ?? 0) > product.stock : false,
       };
     }),
   );
@@ -51,6 +63,14 @@ export class Cart {
   readonly count = computed(() => this.entries().length);
   readonly isEmpty = computed(() => this.entries().length === 0);
   readonly hasUnavailable = computed(() => this.lines().some((l) => !l.product));
+  readonly exceedsStock = computed(() => this.lines().some((l) => l.exceedsStock));
+
+  /** Lo que ya lleva el ticket de un producto, sin contar el renglón `exceptKey` (al editarlo). */
+  qtyInCart(productId: string, exceptKey?: number): number {
+    return this.entries()
+      .filter((e) => e.productId === productId && e.key !== exceptKey)
+      .reduce((sum, e) => sum + e.qtyBase, 0);
+  }
 
   /** Piezas se acumulan en el mismo renglón; cada pesada es un renglón nuevo. */
   add(product: PosProduct, qtyBase: number, weighed = false): void {

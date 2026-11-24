@@ -72,15 +72,19 @@ export class PosQtyInput extends PosFieldBase implements FormValueControl<number
   protected readonly decimals = computed(() => UNITS[this.unit()].decimals);
   protected readonly unitLabel = computed(() => UNITS[this.unit()].label);
   protected readonly placeholder = computed(() => (this.decimals() > 0 ? '0.000' : '0'));
-  protected readonly parseMessage = computed(() =>
-    this.decimals() > 0
+  protected readonly parseMessage = computed(() => {
+    if (this.commaTyped()) return 'Usa punto para los decimales, p. ej. 1.5';
+    return this.decimals() > 0
       ? `Escribe una cantidad válida con hasta ${this.decimals()} decimales`
-      : 'Escribe una cantidad entera de piezas',
-  );
+      : 'Escribe una cantidad entera de piezas';
+  });
 
   private readonly focused = signal(false);
   private readonly draft = signal('');
   protected readonly parseError = signal(false);
+  private readonly commaTyped = signal(false);
+  /** Lo escrito no es una cantidad válida (el valor sigue siendo el último válido). */
+  readonly unparsable = this.parseError.asReadonly();
 
   protected readonly text = computed(() =>
     this.focused() ? this.draft() : qtyBaseToDecimalString(this.value(), this.unit()),
@@ -120,6 +124,7 @@ export class PosQtyInput extends PosFieldBase implements FormValueControl<number
 
   protected onInput(raw: string): void {
     this.draft.set(raw);
+    this.commaTyped.set(raw.includes(','));
     if (raw.trim() === '') {
       this.parseError.set(false);
       this.typed = 0;

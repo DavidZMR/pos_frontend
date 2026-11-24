@@ -1,11 +1,11 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
 import { unwrap } from '../../../core/api/api-types';
-import { formatBp, formatCount } from '../../../shared/charts/chart-format';
+import { formatBp, formatCount, plural } from '../../../shared/charts/chart-format';
 import { PosKpi } from '../../../shared/charts/kpi';
 import { PosRankedBars, type RankedBar } from '../../../shared/charts/ranked-bars';
 import { PosTrendChart } from '../../../shared/charts/trend-chart';
-import { PosCard, PosTable, type TableColumn } from '../../../shared/ui';
+import { PosCard, PosIcon, PosTable, type TableColumn } from '../../../shared/ui';
 import { formatMoney } from '../../../shared/utils/format';
 import { periodLabel } from '../report-dates';
 import { ReportFilters } from '../report-filters';
@@ -14,11 +14,20 @@ import { ReportsApi } from '../reports-api';
 
 type ProductRow = PurchasesReport['byProduct'][number];
 
-/** Compras (entradas de mercancía): por periodo, proveedor y producto. */
+/**
+ * Compras (entradas de mercancía): por periodo, proveedor y producto. Usa el periodo, la
+ * categoría y el producto de los filtros; cajero y forma de pago son de ventas (se avisa).
+ */
 @Component({
   selector: 'pos-purchases-view',
-  imports: [PosCard, PosKpi, PosRankedBars, PosTable, PosTrendChart],
+  imports: [PosCard, PosIcon, PosKpi, PosRankedBars, PosTable, PosTrendChart],
   template: `
+    @if (ignoredFilters(); as ignored) {
+      <p class="ignored" role="note">
+        <pos-icon name="info" [size]="18" />
+        <span>{{ ignored }}</span>
+      </p>
+    }
     @if (report.hasValue()) {
       <div class="kpis">
         <pos-kpi label="Total comprado" [value]="total()" [hero]="true" />
@@ -59,6 +68,21 @@ type ProductRow = PurchasesReport['byProduct'][number];
       display: grid;
       gap: var(--space-5);
     }
+    .ignored {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border: var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-sunken);
+      color: var(--ink-muted);
+      font-size: var(--text-sm);
+    }
+    .ignored pos-icon {
+      flex: none;
+      color: var(--brand);
+    }
     .kpis {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
@@ -83,19 +107,29 @@ export class PurchasesView {
 
   protected readonly report = httpResource<PurchasesReport>(
     () => {
-      const { from, to, granularity, productId, scope } = this.filters.query() as Record<
-        string,
-        string
-      >;
+      const { from, to, granularity, categoryId, productId, scope } =
+        this.filters.query() as Record<string, string>;
       return {
         url: this.api.url('purchases'),
         params: Object.fromEntries(
-          Object.entries({ from, to, granularity, productId, scope }).filter(([, v]) => v),
+          Object.entries({ from, to, granularity, categoryId, productId, scope }).filter(
+            ([, v]) => v,
+          ),
         ) as Record<string, string>,
       };
     },
     { parse: (body) => unwrap<PurchasesReport>(body) },
   );
+
+  /** Los filtros de ventas no aplican a compras: se dice cuáles, para no confundir. */
+  protected readonly ignoredFilters = computed(() => {
+    const names = [
+      this.filters.cashierId() && 'cajero',
+      this.filters.method() && 'forma de pago',
+    ].filter(Boolean);
+    if (!names.length) return '';
+    return `Las compras no tienen ${names.join(' ni ')}: ese filtro no se aplica en esta pestaña.`;
+  });
 
   protected readonly total = computed(() =>
     this.report.hasValue() ? formatMoney(this.report.value().totalCents) : '',
@@ -120,7 +154,7 @@ export class PurchasesView {
       ? this.report.value().bySupplier.map((s) => ({
           id: s.supplierId ?? 'none',
           label: s.name,
-          sublabel: `${formatCount(s.count)} entradas`,
+          sublabel: plural(s.count, 'entrada', 'entradas'),
           value: s.totalCents,
           valueText: formatMoney(s.totalCents),
           detail: formatBp(s.shareBp),

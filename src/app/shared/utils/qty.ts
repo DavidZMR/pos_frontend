@@ -19,7 +19,8 @@ export function unitScale(unit: Unit): number {
 
 /** "1.25" kg → 1250 g; "3" pz → 3. Lanza RangeError si trae más decimales de los permitidos. */
 export function parseQtyToBase(input: string, unit: Unit): number {
-  return parseDecimalToInteger(input, UNITS[unit].decimals);
+  // Sin separador de miles: "1,250" kg sería ambiguo (¿1.25 o 1,250 kg?). Se pide punto decimal.
+  return parseDecimalToInteger(input, UNITS[unit].decimals, { grouping: false });
 }
 
 /** 1250 (kg) → "1.250"; 3 (pz) → "3". */

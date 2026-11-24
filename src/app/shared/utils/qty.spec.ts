@@ -17,6 +17,13 @@ describe('parseQtyToBase', () => {
     expect(() => parseQtyToBase('1.5', 'pz')).toThrow(RangeError);
   });
 
+  it('en cantidades no se acepta coma: "1,5" kg NO es 15 kg', () => {
+    for (const bad of ['1,5', '1,250', '12,345']) {
+      expect(() => parseQtyToBase(bad, 'kg'), bad).toThrow(/punto/);
+    }
+    expect(() => parseQtyToBase('1,000', 'pz')).toThrow(/punto/);
+  });
+
   it('rechaza más de 3 decimales en kg', () => {
     expect(() => parseQtyToBase('1.2345', 'kg')).toThrow(RangeError);
   });

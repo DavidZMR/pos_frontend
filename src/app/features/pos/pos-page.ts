@@ -217,14 +217,18 @@ export class PosPage {
       this.focusSearch();
       return;
     }
-    const result = await this.askQty({ product });
+    const result = await this.askQty({ product, inCartQtyBase: this.cart.qtyInCart(product.id) });
     if (result) this.cart.add(product, result.qtyBase, result.weighed);
     this.focusSearch();
   }
 
   protected async editLine(line: CartLine): Promise<void> {
     if (!line.product) return;
-    const result = await this.askQty({ product: line.product, qtyBase: line.qtyBase });
+    const result = await this.askQty({
+      product: line.product,
+      qtyBase: line.qtyBase,
+      inCartQtyBase: this.cart.qtyInCart(line.product.id, line.key),
+    });
     if (result) this.cart.setQty(line.key, result.qtyBase, result.weighed);
     this.focusSearch();
   }
@@ -275,6 +279,12 @@ export class PosPage {
       this.toast.warning('Quita del ticket los productos que ya no están a la venta.');
       return;
     }
+    if (this.cart.exceedsStock() && !this.allowNegative()) {
+      this.toast.warning(
+        'Hay productos sin existencia suficiente y este negocio no vende en negativo. Ajusta las cantidades.',
+      );
+      return;
+    }
     const data: PaymentDialogData = {
       totalCents: this.cart.totalCents(),
       taxCents: this.cart.taxCents(),
@@ -320,6 +330,11 @@ export class PosPage {
       this.opening.set(false);
     }
   }
+
+  /** Si el negocio permite vender sin existencia (por defecto sí: solo se avisa). */
+  protected readonly allowNegative = computed(
+    () => this.context.current()?.settings?.allowNegativeStock ?? true,
+  );
 
   protected stockClass(product: PosProduct): string {
     if (product.stock <= 0) return 'out';

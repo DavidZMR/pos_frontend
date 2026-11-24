@@ -73,6 +73,7 @@ export class ReportExporter {
         rangeText: rangeLabel(from, to),
         previousText: rangeLabel(summary.previous.from, summary.previous.to),
         filtersText: this.filtersText(filters),
+        purchaseFiltersText: this.filtersText(filters, true),
         generatedAt: formatDateTime(new Date()),
       },
       this.renderImages(data),
@@ -178,8 +179,11 @@ export class ReportExporter {
     return images;
   }
 
-  /** Filtros aplicados con nombres legibles (para el encabezado del Excel). */
-  private filtersText(filters: ReportFilters): string {
+  /**
+   * Filtros aplicados con nombres legibles (encabezado del Excel). Las hojas de compras solo usan
+   * periodo, categoría y producto: cajero y forma de pago se marcan como "no aplican".
+   */
+  private filtersText(filters: ReportFilters, forPurchases = false): string {
     const parts: string[] = [];
     const granularity = filters.granularity();
     if (granularity) parts.push(`agrupado por ${GRANULARITY_LABEL[granularity].toLowerCase()}`);
@@ -193,8 +197,13 @@ export class ReportExporter {
       parts.push(
         `producto: ${this.catalog.products().find((p) => p.id === product)?.name ?? product}`,
       );
-    if (filters.cashierId()) parts.push('un cajero');
     const method = filters.method();
+    if (forPurchases) {
+      const ignored = [filters.cashierId() && 'cajero', method && 'forma de pago'].filter(Boolean);
+      if (ignored.length) parts.push(`${ignored.join(' y ')}: no aplican a compras`);
+      return parts.join(', ');
+    }
+    if (filters.cashierId()) parts.push('un cajero');
     if (method) parts.push(`pago: ${PAYMENT_LABEL[method].label}`);
     return parts.join(', ');
   }
@@ -214,8 +223,8 @@ export class ReportExporter {
 }
 
 function purchaseParams(query: Record<string, unknown>): Record<string, unknown> {
-  const { from, to, granularity, productId, scope } = query;
+  const { from, to, granularity, categoryId, productId, scope } = query;
   return Object.fromEntries(
-    Object.entries({ from, to, granularity, productId, scope }).filter(([, v]) => v),
+    Object.entries({ from, to, granularity, categoryId, productId, scope }).filter(([, v]) => v),
   );
 }

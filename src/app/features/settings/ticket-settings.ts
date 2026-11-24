@@ -5,6 +5,7 @@ import { CurrentBusiness, type TicketDataInput } from '../../core/business/curre
 import { PrinterStore } from '../../core/hardware/printer-store';
 import { PosButton, PosCard, PosIcon, PosInput, PosTextarea, ToastService } from '../../shared/ui';
 import { toApiError } from '../../core/api/api-types';
+import { isValidRfc, RFC_MESSAGE } from '../../shared/utils/rfc';
 import { sampleSale } from '../pos/ticket/sample-sale';
 import { saleTicketHtml } from '../pos/ticket/ticket-html';
 
@@ -28,6 +29,8 @@ const EMPTY: TicketDataInput = {
         <div class="form">
           <pos-input
             label="Nombre del negocio"
+            [errors]="errors().name"
+            [touched]="checked()"
             [value]="draft().name"
             (valueChange)="patch({ name: $event })"
           />
@@ -39,6 +42,8 @@ const EMPTY: TicketDataInput = {
             />
             <pos-input
               label="RFC"
+              [errors]="errors().taxId"
+              [touched]="checked()"
               [value]="draft().taxId"
               (valueChange)="patch({ taxId: $event })"
             />
@@ -187,6 +192,18 @@ export class PosTicketSettings {
   });
   protected readonly draft = linkedSignal(() => this.saved());
   protected readonly saving = signal(false);
+  /** Los errores se muestran al intentar guardar (y se corrigen en vivo después). */
+  protected readonly checked = signal(false);
+  protected readonly errors = computed(() => {
+    const d = this.draft();
+    return {
+      name:
+        d.name.trim().length < 2
+          ? [{ kind: 'minLength', message: 'Escribe el nombre del negocio (mínimo 2 caracteres)' }]
+          : [],
+      taxId: isValidRfc(d.taxId) ? [] : [{ kind: 'rfc', message: RFC_MESSAGE }],
+    };
+  });
 
   protected readonly dirty = computed(
     () => JSON.stringify(this.draft()) !== JSON.stringify(this.saved()),
@@ -213,16 +230,14 @@ export class PosTicketSettings {
 
   protected async save(): Promise<void> {
     const d = this.draft();
-    if (d.name.trim().length < 2) {
-      this.toast.warning('El nombre del negocio debe tener al menos 2 caracteres');
-      return;
-    }
+    this.checked.set(true);
+    if (this.errors().name.length || this.errors().taxId.length) return;
     this.saving.set(true);
     try {
       await this.business.updateTicketData({
         name: d.name.trim(),
         legalName: d.legalName.trim(),
-        taxId: d.taxId.trim(),
+        taxId: d.taxId.trim().toUpperCase(),
         phone: d.phone.trim(),
         address: d.address.trim(),
         ticket: { header: d.ticket.header.trim(), footer: d.ticket.footer.trim() },

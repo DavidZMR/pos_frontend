@@ -166,6 +166,13 @@
                   >
                     {{ line.qtyBase | qty: product.unit }} × {{ product.salePriceCents | money }}
                   </button>
+                  @if (line.exceedsStock) {
+                    <span class="line-stock" [class.blocked]="!allowNegative()">
+                      <pos-icon name="alert" [size]="14" />
+                      Existencia: {{ product.stock | qty: product.unit
+                      }}{{ allowNegative() ? ' · quedará en negativo' : ' · no alcanza' }}
+                    </span>
+                  }
                 </div>
                 <div class="line-side">
                   <strong class="line-total num">{{ line.lineTotalCents | money }}</strong>

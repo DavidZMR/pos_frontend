@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { unwrap } from '../../../core/api/api-types';
-import { formatBp, formatCount } from '../../../shared/charts/chart-format';
+import { formatBp, plural } from '../../../shared/charts/chart-format';
 import { PosRankedBars, type RankedBar } from '../../../shared/charts/ranked-bars';
 import { PosCard, PosSelect, type SelectOption } from '../../../shared/ui';
 import { formatMoney, formatQty } from '../../../shared/utils/format';
@@ -121,7 +121,7 @@ export class ProductsView {
         choice === 'profit'
           ? formatMoney(p.profitCents)
           : choice === 'tickets'
-            ? `${formatCount(p.tickets)} tickets`
+            ? plural(p.tickets, 'ticket', 'tickets')
             : choice.startsWith('qty-')
               ? qty
               : formatMoney(p.salesCents);
