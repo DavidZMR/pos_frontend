@@ -1,0 +1,523 @@
+<pos-page-header
+  eyebrow="Ayuda"
+  heading="Manual de uso"
+  [description]="
+    managers()
+      ? 'Guía corta de ' + brand + ' para la caja y la administración.'
+      : 'Guía corta de ' + brand + ' para la caja.'
+  "
+>
+  <button
+    posButton
+    headerActions
+    class="no-print"
+    variant="secondary"
+    icon="printer"
+    (click)="print()"
+  >
+    Imprimir
+  </button>
+</pos-page-header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Temas del manual">
+    <p class="toc-title">Temas</p>
+    <ol>
+      @for (topic of topics(); track topic.id; let i = $index) {
+        <li>
+          <button type="button" (click)="go(topic.id)">
+            <span class="toc-num num">{{ i + 1 }}</span>
+            <pos-icon [name]="topic.icon" [size]="16" />
+            <span>{{ topic.title }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+  </nav>
+
+  <article class="manual">
+    <!-- ================================ CAJA ================================ -->
+    <p class="part">Para la caja</p>
+
+    <section class="topic" aria-labelledby="entrar-titulo">
+      <h2 id="entrar-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('entrar') }}</span> Entrar y salir
+      </h2>
+      <ol class="steps">
+        <li>
+          Escribe tu <strong>Usuario</strong> y <strong>Contraseña</strong> y pulsa
+          <strong>Entrar</strong>. Los cajeros entran directo al <strong>Punto de venta</strong>.
+        </li>
+        <li>
+          Para cambiar tu contraseña usa el botón <strong>Contraseña</strong>, abajo del menú.
+        </li>
+        <li>
+          Al terminar tu turno, primero haz el corte (ver
+          <button type="button" class="link" (click)="go('corte')">Entradas, retiros y corte</button
+          >) y luego pulsa <strong>Salir</strong>.
+        </li>
+      </ol>
+    </section>
+
+    <section class="topic" aria-labelledby="abrir-caja-titulo">
+      <h2 id="abrir-caja-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('abrir-caja') }}</span> Abrir la caja
+      </h2>
+      <p>Para vender necesitas tu caja abierta. Cada cajero abre la suya.</p>
+      <ol class="steps">
+        <li>
+          Entra a <strong>Punto de venta</strong>. Si tu caja está cerrada verás
+          <em>“Abre la caja para vender”</em>.
+        </li>
+        <li>
+          En <strong>Fondo inicial</strong> escribe el efectivo con el que empiezas (el cambio que
+          hay en el cajón), por ejemplo <span class="sample num">500</span>.
+        </li>
+        <li>
+          Pulsa <strong>Abrir caja</strong>. Arriba a la derecha verás el folio de tu caja, por
+          ejemplo <span class="sample num">Caja C-000123</span>.
+        </li>
+      </ol>
+    </section>
+
+    <section class="topic" aria-labelledby="vender-titulo">
+      <h2 id="vender-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('vender') }}</span> Vender
+      </h2>
+      <ol class="steps">
+        <li>
+          Busca el producto escribiendo su <strong>código</strong> (<span class="sample num"
+            >101</span
+          >), parte del <strong>nombre</strong> (<span class="sample">camaron gr</span>) o pasándolo
+          por el <strong>lector de código de barras</strong>. No hace falta hacer clic en el
+          buscador: lo que escribas va ahí.
+        </li>
+        <li>
+          Pulsa <kbd>Enter</kbd> para agregar el primero de la lista. Con <kbd>↑</kbd>
+          <kbd>↓</kbd> eliges otro. <kbd>Esc</kbd> borra la búsqueda.
+        </li>
+        <li>También puedes tocar una <strong>categoría</strong> y después el producto.</li>
+        <li>
+          Para varias piezas escribe la cantidad, un asterisco y el código:
+          <span class="sample num">3*101</span> y <kbd>Enter</kbd> agrega 3.
+        </li>
+        <li>
+          En el ticket (a la derecha): <strong>−</strong> y <strong>+</strong> cambian las piezas,
+          <strong>×</strong> quita el renglón y al tocar la cantidad la corriges (<kbd>F4</kbd>
+          corrige el último renglón). <strong>Vaciar</strong> quita todo.
+        </li>
+      </ol>
+      <div class="note warn" role="note">
+        <pos-icon name="alert" [size]="18" />
+        <p>
+          Si vendes más de lo que hay en existencia, el renglón avisa
+          <em>“Existencia: 117 pz · quedará en negativo”</em>. La venta sí se puede hacer; avísale
+          al administrador para que registre la mercancía que llegó o ajuste la existencia. Si el
+          negocio no permite vender sin existencia, dice <em>“no alcanza”</em> y no deja cobrar
+          hasta corregir la cantidad.
+        </p>
+      </div>
+    </section>
+
+    <section class="topic" aria-labelledby="pesar-titulo">
+      <h2 id="pesar-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('pesar') }}</span> Pesar y vender por litro
+      </h2>
+      <p>
+        Al elegir un producto que se vende por kilo o por litro se abre una ventana para la
+        cantidad, con el <strong>importe</strong> en vivo.
+      </p>
+      <h3>Con báscula</h3>
+      <ol class="steps">
+        <li>Coloca el producto en la báscula: el peso aparece solo.</li>
+        <li>
+          Espera el aviso <em>“Peso estable · Enter para agregar”</em> y pulsa <kbd>Enter</kbd>.
+          Mientras dice <em>“Pesando…”</em> todavía no deja agregar.
+        </li>
+        <li>
+          Si escribes un peso a mano, se usa lo que escribiste (<em>“Peso escrito a mano”</em>).
+          <strong>Usar báscula</strong> vuelve a tomar el peso de la báscula.
+        </li>
+      </ol>
+      <h3>Sin báscula</h3>
+      <ol class="steps">
+        <li>
+          Escribe el peso en kilos con <strong>punto decimal</strong>:
+          <span class="sample num">1.250</span> es un kilo 250 gramos,
+          <span class="sample num">0.5</span> es medio kilo. Hasta 3 decimales.
+        </li>
+        <li>
+          Pulsa <kbd>Enter</kbd> o <strong>Agregar</strong>. Por litro es igual:
+          <span class="sample num">0.500</span> es medio litro.
+        </li>
+      </ol>
+      <div class="note" role="note">
+        <pos-icon name="info" [size]="18" />
+        <p>
+          Usa <strong>punto</strong>, no coma: <span class="sample num">1,5</span> no se acepta (<em
+            >“Usa punto para los decimales”</em
+          >). Mientras lo escrito no sea válido, el importe muestra <strong>—</strong> y no deja
+          agregar.
+        </p>
+      </div>
+    </section>
+
+    <section class="topic" aria-labelledby="cobrar-titulo">
+      <h2 id="cobrar-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('cobrar') }}</span> Cobrar
+      </h2>
+      <ol class="steps">
+        <li>Pulsa <kbd>F12</kbd> o el botón <strong>Cobrar (F12)</strong>.</li>
+        <li>
+          Elige la forma de pago: <strong>Efectivo</strong>, <strong>Tarjeta</strong>,
+          <strong>Transferencia</strong> u <strong>Otro</strong>. Es informativa: sirve para el
+          corte y los reportes; el cobro con tarjeta se hace en la terminal del banco.
+        </li>
+        <li>
+          En efectivo, escribe en <strong>Recibido</strong> lo que te dio el cliente o toca un
+          billete sugerido; <strong>Exacto</strong> (o dejarlo vacío) es pago justo. Ahí mismo ves
+          el <strong>Cambio</strong>, o lo que <strong>Faltan</strong>.
+        </li>
+        <li>
+          Pulsa <strong>Cobrar (Enter)</strong>. Después, <strong>Nueva venta (Enter)</strong> deja
+          la caja lista para el siguiente cliente.
+        </li>
+        <li>
+          Si esta PC tiene impresora, <strong>Imprimir (F9)</strong> saca el ticket (o sale solo, si
+          así se configuró). Sin impresora la venta queda registrada igual.
+        </li>
+      </ol>
+      <div class="note" role="note">
+        <pos-icon name="info" [size]="18" />
+        <p>
+          Si aparece <em>“Los precios cambiaron”</em>, alguien actualizó un precio mientras vendías:
+          el ticket ya tiene el precio nuevo. Revisa el total y vuelve a cobrar.
+        </p>
+      </div>
+    </section>
+
+    <section class="topic" aria-labelledby="corte-titulo">
+      <h2 id="corte-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('corte') }}</span> Entradas, retiros y corte de caja
+      </h2>
+      <p>
+        En el menú <strong>Caja</strong> ves tu turno: efectivo esperado, lo vendido, el fondo
+        inicial y las entradas o retiros.
+      </p>
+      <ol class="steps">
+        <li>
+          <strong>Entrada</strong>: cuando metes efectivo al cajón (por ejemplo, más cambio).
+          <strong>Retiro</strong>: cuando sacas efectivo (un pago, un depósito). Escribe el
+          <strong>Monto</strong> y el <strong>Motivo</strong>. No se puede retirar más del efectivo
+          que hay.
+        </li>
+        <li>Al terminar el turno pulsa <strong>Hacer corte</strong>.</li>
+        <li>
+          Cuenta billetes y monedas del cajón y escribe el total en
+          <strong>Efectivo contado</strong>.
+        </li>
+        <li>
+          La app calcula la <strong>Diferencia</strong> contra el efectivo esperado (fondo +
+          efectivo vendido + entradas − retiros): si cuadra, sobra o falta. Agrega notas si hace
+          falta y pulsa <strong>Cerrar caja</strong>.
+        </li>
+        <li>
+          Para volver a vender hay que abrir una caja nueva. En el historial de Caja puedes ver
+          cortes anteriores y, con impresora, <strong>Imprimir corte</strong>.
+        </li>
+      </ol>
+    </section>
+
+    <section class="topic" aria-labelledby="ventas-titulo">
+      <h2 id="ventas-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('ventas') }}</span> Consultar y cancelar ventas
+      </h2>
+      <ol class="steps">
+        <li>
+          En el menú <strong>Ventas</strong> están los tickets (el cajero ve los suyos; el
+          administrador, todos). Filtra por <strong>Folio</strong>, fechas,
+          <strong>Forma de pago</strong> o <strong>Estado</strong>.
+        </li>
+        <li>Toca un ticket para ver el detalle y <strong>Reimprimir</strong>.</li>
+        <li>
+          Las ventas no se modifican: si hubo un error, el administrador usa
+          <strong>Cancelar venta</strong> con el motivo, la mercancía regresa al inventario y la
+          venta deja de contar en los reportes. Después se cobra de nuevo correctamente.
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============================ ADMINISTRACIÓN ============================ -->
+    @if (managers()) {
+      <p class="part">Para el administrador</p>
+
+      <section class="topic" aria-labelledby="productos-titulo">
+        <h2 id="productos-titulo" tabindex="-1">
+          <span class="topic-num num">{{ number('productos') }}</span> Productos y precios
+        </h2>
+        <ol class="steps">
+          <li>En <strong>Productos</strong> pulsa <strong>Nuevo producto</strong>.</li>
+          <li>
+            <strong>Código</strong>: corto y único, para teclearlo rápido en la caja (<span
+              class="sample num"
+              >101</span
+            >). El <strong>Código de barras</strong> es opcional: escanéalo en ese campo.
+          </li>
+          <li>
+            <strong>Se vende por</strong>: Pieza, Kilogramo o Litro.
+            <strong>No se puede cambiar después del alta.</strong>
+          </li>
+          <li>
+            <strong>Precio de venta</strong> por pieza, kilo o litro,
+            <strong>con IVA incluido</strong> (lo que paga el cliente). En
+            <strong>IVA</strong> elige 16 % general, 8 % frontera o tasa 0 % / exento (alimentos sin
+            preparar); solo sirve para desglosarlo.
+          </li>
+          <li>
+            <strong>Existencia inicial</strong> (lo que tienes hoy) y
+            <strong>Existencia mínima</strong> (te avisa cuando quede eso o menos; 0 = sin aviso).
+          </li>
+        </ol>
+        <div class="note" role="note">
+          <pos-icon name="info" [size]="18" />
+          <p>
+            Cambiar un precio no altera las ventas pasadas: cada ticket guarda el precio y costo con
+            que se vendió. Cada cambio queda en el <strong>Historial de precios</strong> del
+            producto. Si ya no lo vendes, desactívalo en lugar de borrarlo.
+            <strong>Categorías</strong> y <strong>Proveedores</strong> son listas simples para
+            ordenar y filtrar.
+          </p>
+        </div>
+      </section>
+
+      <section class="topic" aria-labelledby="entradas-titulo">
+        <h2 id="entradas-titulo" tabindex="-1">
+          <span class="topic-num num">{{ number('entradas') }}</span> Entradas de mercancía
+          (compras)
+        </h2>
+        <ol class="steps">
+          <li>En <strong>Almacén → Entradas</strong> pulsa <strong>Registrar entrada</strong>.</li>
+          <li>
+            En <strong>Datos de la entrada</strong>: <strong>Proveedor</strong> (opcional),
+            <strong>Fecha de compra</strong>, <strong>Factura o nota</strong> y observaciones.
+          </li>
+          <li>
+            En <strong>Agregar producto</strong> busca por código o nombre y pulsa <kbd>Enter</kbd>.
+            En cada renglón escribe la <strong>Cantidad</strong> y el <strong>Costo</strong> por
+            pieza, kilo o litro. Si cambias el <strong>Precio de venta</strong> aparece
+            <em>“Nuevo precio”</em>.
+          </li>
+          <li>
+            Pulsa <strong>Registrar entrada</strong>: sube la existencia, recalcula el
+            <strong>costo promedio</strong> y, si cambiaste precios, quedan en el historial.
+          </li>
+        </ol>
+        <div class="note warn" role="note">
+          <pos-icon name="alert" [size]="18" />
+          <p>
+            Si registraste mal una entrada, ábrela y cancélala con el motivo: se resta de la
+            existencia lo que entró, pero el costo promedio y los precios <strong>no</strong> se
+            revierten. Después registra la entrada correcta.
+          </p>
+        </div>
+      </section>
+
+      <section class="topic" aria-labelledby="existencias-titulo">
+        <h2 id="existencias-titulo" tabindex="-1">
+          <span class="topic-num num">{{ number('existencias') }}</span> Existencias y ajustes
+        </h2>
+        <ol class="steps">
+          <li>
+            <strong>Almacén → Existencias</strong> muestra lo que hay y el valor del inventario. El
+            filtro <strong>Existencia</strong> deja ver solo <em>Bajo mínimo</em> o
+            <em>Agotados</em>.
+          </li>
+          <li>
+            <strong>Ajustar</strong> corrige la existencia de un producto, siempre con motivo:
+            <ul>
+              <li><strong>Merma / salida</strong>: producto dañado, caducado o regalado.</li>
+              <li><strong>Conteo físico</strong>: capturas cuánto hay realmente.</li>
+              <li><strong>Entrada / sobrante</strong>: aparece producto sin compra.</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Movimientos</strong> es el historial de cada producto: ventas, entradas,
+            cancelaciones y ajustes, con quién y cuándo.
+          </li>
+        </ol>
+      </section>
+
+      <section class="topic" aria-labelledby="reportes-titulo">
+        <h2 id="reportes-titulo" tabindex="-1">
+          <span class="topic-num num">{{ number('reportes') }}</span> Tablero y reportes
+        </h2>
+        <ol class="steps">
+          <li>
+            El <strong>Tablero</strong> dice cómo va el día: ventas, tickets y ticket promedio de
+            hoy contra <strong>ayer a esta misma hora</strong>; ventas del mes contra los mismos
+            días del mes anterior; la tendencia de 30 días, formas de pago, lo más vendido,
+            existencias bajas y cajas abiertas.
+          </li>
+          <li>
+            En <strong>Reportes</strong> elige el <strong>Periodo</strong> (hoy, ayer, últimos 7 o
+            30 días, este mes, el mes pasado, este año, últimos 12 meses o fechas propias) y, si
+            quieres, <strong>Categoría</strong>, <strong>Producto</strong>,
+            <strong>Cajero</strong> o <strong>Forma de pago</strong>.
+          </li>
+          <li>
+            Las pestañas: <strong>Resumen</strong> (ventas, ganancia y margen contra el periodo
+            anterior), <strong>Productos</strong> (lo más vendido),
+            <strong>Pagos y horarios</strong> (formas de pago, cajeros y horas pico) y
+            <strong>Compras</strong>. En Compras no aplican el cajero ni la forma de pago.
+          </li>
+          <li>
+            <strong>Exportar a Excel</strong> descarga un archivo con el resumen, sus gráficas y una
+            hoja por cada detalle, con los mismos filtros.
+          </li>
+        </ol>
+        <div class="note" role="note">
+          <pos-icon name="info" [size]="18" />
+          <p>
+            La ganancia es lo vendido menos el costo de cada venta, con el precio y costo de ese
+            momento.
+          </p>
+        </div>
+      </section>
+
+      <section class="topic" aria-labelledby="usuarios-titulo">
+        <h2 id="usuarios-titulo" tabindex="-1">
+          <span class="topic-num num">{{ number('usuarios') }}</span> Usuarios y equipo
+        </h2>
+        <ol class="steps">
+          <li>
+            En <strong>Usuarios → Nuevo usuario</strong> das de alta a cada cajero como
+            <strong>Empleado</strong> (solo caja y ventas). La contraseña lleva mínimo 8 caracteres.
+            Para cambiar la de alguien, edítalo y escribe una nueva; vacía, no cambia.
+          </li>
+          <li>
+            <strong>Equipo</strong> se configura en cada PC (solo en la app de escritorio):
+            <ul>
+              <li>
+                <strong>Báscula</strong>: activa <em>Usar báscula en esta PC</em> y pulsa
+                <strong>Buscar báscula automáticamente</strong>; si no la encuentra, elige el
+                <strong>Puerto</strong> a mano.
+              </li>
+              <li>
+                <strong>Impresora de tickets</strong>: elige la impresora, el
+                <strong>Ancho del papel</strong> y si quieres
+                <em>Imprimir automáticamente al cobrar</em>. Prueba con
+                <strong>Imprimir prueba</strong>.
+              </li>
+              <li>
+                <strong>Datos del ticket</strong>: nombre, RFC, dirección, teléfono, encabezado y
+                pie, con vista previa.
+              </li>
+            </ul>
+          </li>
+          @if (superadmin()) {
+            <li>
+              Como <strong>super administrador</strong> además das de alta negocios en
+              <strong>Negocios</strong> y eliges con cuál trabajar en la barra superior.
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    <!-- ============================== PARA TODOS ============================== -->
+    <section class="topic" aria-labelledby="atajos-titulo">
+      <h2 id="atajos-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('atajos') }}</span> Atajos de teclado
+      </h2>
+      <dl class="keys">
+        <div>
+          <dt><kbd>F2</kbd></dt>
+          <dd>Ir al buscador</dd>
+        </div>
+        <div>
+          <dt><kbd>Enter</kbd></dt>
+          <dd>Agregar el producto elegido · confirmar</dd>
+        </div>
+        <div>
+          <dt><kbd>↑</kbd> <kbd>↓</kbd></dt>
+          <dd>Elegir otro resultado</dd>
+        </div>
+        <div>
+          <dt><kbd>Esc</kbd></dt>
+          <dd>Borrar la búsqueda · cerrar una ventana</dd>
+        </div>
+        <div>
+          <dt><span class="sample num">3*101</span></dt>
+          <dd>Agregar 3 del producto 101</dd>
+        </div>
+        <div>
+          <dt><kbd>F4</kbd></dt>
+          <dd>Cambiar la cantidad del último renglón</dd>
+        </div>
+        <div>
+          <dt><kbd>F12</kbd></dt>
+          <dd>Cobrar</dd>
+        </div>
+        <div>
+          <dt><kbd>F9</kbd></dt>
+          <dd>Imprimir el ticket (al terminar de cobrar)</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="topic" aria-labelledby="problemas-titulo">
+      <h2 id="problemas-titulo" tabindex="-1">
+        <span class="topic-num num">{{ number('problemas') }}</span> Si algo falla
+      </h2>
+      <dl class="faq">
+        <div>
+          <dt>La báscula no marca el peso</dt>
+          <dd>
+            Revisa que esté encendida y conectada. Mientras tanto escribe el peso a mano en la
+            ventana de cantidad.
+            @if (managers()) {
+              En <a routerLink="/equipo">Equipo</a> puedes volver a buscarla.
+            } @else {
+              Avisa al administrador.
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>No sale el ticket</dt>
+          <dd>
+            La venta ya quedó registrada. Revisa papel y encendido, y reimprímelo desde
+            <strong>Ventas</strong>.
+            @if (managers()) {
+              En <a routerLink="/equipo">Equipo</a> usa <strong>Imprimir prueba</strong>.
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>“No hay conexión con el servidor”</dt>
+          <dd>
+            La información se guarda en internet: sin conexión no se puede vender ni consultar.
+            Revisa el módem o el cable de red y vuelve a intentar.
+          </dd>
+        </div>
+        <div>
+          <dt>La app tarda en abrir</dt>
+          <dd>
+            Es normal que la pantalla <em>“Iniciando…”</em> dure de 30 a 40 segundos: el antivirus
+            revisa la app al abrirla. Si tarda mucho más, pide a quien instaló el sistema que la
+            agregue a las exclusiones del antivirus.
+          </dd>
+        </div>
+        <div>
+          <dt>Olvidé mi contraseña</dt>
+          <dd>
+            @if (managers()) {
+              Pide al super administrador que te ponga una nueva en <strong>Usuarios</strong>.
+            } @else {
+              Pide al administrador que te ponga una nueva en <strong>Usuarios</strong>.
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </article>
+</div>

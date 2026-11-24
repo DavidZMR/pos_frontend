@@ -24,7 +24,7 @@ src/app/
   shared/pipes/  money, qty
   shared/utils/  money.ts, qty.ts, normalize.ts (idénticos a los del backend)
   layout/        app-shell, sidebar por rol, topbar
-  features/<x>/  pantallas por dominio, rutas lazy (pos, products, purchases, inventory, sales, reports, dashboard, users, businesses, settings)
+  features/<x>/  pantallas por dominio, rutas lazy (pos, products, purchases, inventory, sales, reports, dashboard, users, businesses, settings, help)
 src/styles/      tokens.scss (paleta y escalas), base, utilidades
 electron/        main, preload (contextBridge), lanzador de backend, config por PC, hardware/scale, hardware/printer
 scripts/         stage-backend, verificación de empaquetado
@@ -54,6 +54,7 @@ scripts/         stage-backend, verificación de empaquetado
 - **Reportes** (`features/reports/`): `ReportFilters` (provisto en la página; rango en la zona del NEGOCIO con `todayIn`, `query()` agrega el negocio para recargar al cambiarlo), vistas por pestaña con `httpResource`, `/tablero` y `/reportes` (admin/superadmin; superadmin sin negocio = todos). Gráficas: `shared/charts` (ver skill `pos-ui-kit`); conteos siempre completos con `formatCount` (`formatCountCompact` solo en ejes) y `plural()`. El Tablero compara justo: hoy vs. ayer **a esta hora** (`until`) y el mes vs. los mismos días del mes anterior (`compareFrom/compareTo`). Compras usa periodo, categoría y producto; cajero y forma de pago no aplican (se avisa en la pestaña y en el Excel). Excel: `ReportExporter` carga ExcelJS bajo demanda; `buildReportWorkbook()` es puro y probado (centavos ÷ 100 solo ahí).
 - Datos de prueba realistas: backend con `npm run dev:memory -- --history` (~14 meses).
 - **Marca visible** ("El Atlántico"): `src/app/core/branding.ts` (UI) + `electron/branding.cjs` (ventana, carga) + `productName` en `electron-builder.yml` (instalador). Ejecutable `ElAtlantico.exe` y carpeta de datos `%APPDATA%\PuntoVenta` fijos en ASCII. El nombre del **negocio** es dato (Negocios / Equipo → Datos del ticket).
+- **Manual de uso** en la app (`/ayuda`, `features/help/`, todos los roles; el cajero ve solo los temas de caja; imprimible con estilos `@media print` globales en `styles/_base.scss`). Usa los textos reales de cada pantalla: si cambias un botón, atajo o flujo, actualiza el manual en el mismo PR.
 - Textos de UI en español.
 
 ---

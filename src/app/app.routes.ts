@@ -122,6 +122,11 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'ayuda',
+        title: `Ayuda · ${TITLE}`,
+        loadComponent: () => import('./features/help/help-page').then((m) => m.HelpPage),
+      },
+      {
         path: 'equipo',
         title: `Equipo de esta PC · ${TITLE}`,
         canMatch: [roleGuard('superadmin', 'admin')],

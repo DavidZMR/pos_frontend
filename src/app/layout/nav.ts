@@ -66,4 +66,8 @@ export const NAV: readonly NavGroup[] = [
       { label: 'Equipo', path: '/equipo', icon: 'settings', roles: MANAGERS },
     ],
   },
+  {
+    label: 'Ayuda',
+    items: [{ label: 'Manual de uso', path: '/ayuda', icon: 'book', roles: ALL }],
+  },
 ];

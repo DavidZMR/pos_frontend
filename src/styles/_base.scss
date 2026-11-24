@@ -103,3 +103,23 @@ th {
     scroll-behavior: auto !important;
   }
 }
+
+/* Impresión (p. ej. el manual de uso): solo el contenido, sin menú, barra superior ni botones. */
+@media print {
+  .skip-link,
+  .sidebar,
+  .topbar,
+  .scrim,
+  .no-print {
+    display: none !important;
+  }
+  .shell {
+    display: block !important;
+  }
+  .content {
+    padding: 0 !important;
+  }
+  body {
+    background: var(--surface-raised);
+  }
+}
