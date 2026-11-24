@@ -2,7 +2,7 @@ import { httpResource } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
 import { unwrap } from '../../../core/api/api-types';
 import type { ChartSlot } from '../../../shared/charts/chart-config';
-import { formatCount } from '../../../shared/charts/chart-format';
+import { plural } from '../../../shared/charts/chart-format';
 import { type HeatCell, PosHeatmap } from '../../../shared/charts/heatmap';
 import { PosRankedBars, type RankedBar } from '../../../shared/charts/ranked-bars';
 import { PosSegmentedBar, type Segment } from '../../../shared/charts/segmented-bar';
@@ -16,7 +16,10 @@ import { ReportsApi } from '../reports-api';
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const WEEKDAY_NAMES = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 
-/** Formas de pago, cajeros y horas pico (sobre tickets completos). */
+/**
+ * Formas de pago, cajeros y horas pico. Con categoría o producto cuenta solo esos renglones de
+ * cada ticket (cuadra con el resumen).
+ */
 @Component({
   selector: 'pos-payments-view',
   imports: [PosCard, PosHeatmap, PosRankedBars, PosSegmentedBar],
@@ -99,7 +102,7 @@ export class PaymentsView {
       ? this.report.value().byCashier.map((c) => ({
           id: c.cashierId,
           label: c.name,
-          sublabel: `${formatCount(c.tickets)} tickets · promedio ${formatMoney(c.avgTicketCents)}`,
+          sublabel: `${plural(c.tickets, 'ticket', 'tickets')} · promedio ${formatMoney(c.avgTicketCents)}`,
           value: c.salesCents,
           valueText: formatMoney(c.salesCents),
         }))
@@ -123,7 +126,7 @@ export class PaymentsView {
           row: h.weekday,
           col: h.hour,
           value: h.tickets,
-          text: `${WEEKDAY_NAMES[h.weekday - 1]} ${h.hour}:00 – ${h.hour + 1}:00 · ${formatCount(h.tickets)} tickets · ${formatMoney(h.salesCents)}`,
+          text: `${WEEKDAY_NAMES[h.weekday - 1]} ${h.hour}:00 – ${h.hour + 1}:00 · ${plural(h.tickets, 'ticket', 'tickets')} · ${formatMoney(h.salesCents)}`,
         }))
       : [],
   );

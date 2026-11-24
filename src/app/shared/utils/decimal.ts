@@ -1,9 +1,30 @@
 /**
  * Convierte un texto decimal ("1,234.50", "$12.5", "0.250") a entero escalado
  * (p. ej. decimals=2 → centavos) sin pasar por punto flotante.
+ *
+ * La coma SOLO se acepta como separador de miles bien formado ("1,234.50"). "1,5" no es 1.5
+ * ni 15: es un error (antes se descartaba la coma y "1,5 kg" se volvía 15 kg, diez veces más).
+ * Con `grouping: false` (cantidades) cualquier coma es error: "1,250" kg sería ambiguo.
  */
-export function parseDecimalToInteger(input: string, decimals: number): number {
-  const cleaned = input.trim().replace(/[\s,$]/g, '');
+export interface DecimalOptions {
+  /** Permitir comas como separador de miles (dinero). Por defecto true. */
+  grouping?: boolean;
+}
+
+const GROUPED_THOUSANDS = /^\d{1,3}(?:,\d{3})+$/;
+
+export function parseDecimalToInteger(
+  input: string,
+  decimals: number,
+  { grouping = true }: DecimalOptions = {},
+): number {
+  const trimmed = input.trim().replace(/[\s$]/g, '');
+  const sign = trimmed.startsWith('-') ? '-' : '';
+  const [intRaw = '', ...rest] = trimmed.slice(sign.length).split('.');
+  if (intRaw.includes(',') && (!grouping || !GROUPED_THOUSANDS.test(intRaw))) {
+    throw new RangeError(`Usa punto para los decimales: "${input}"`);
+  }
+  const cleaned = `${sign}${intRaw.replace(/,/g, '')}${rest.length ? `.${rest.join('.')}` : ''}`;
   const match = /^(-)?(\d*)(?:\.(\d*))?$/.exec(cleaned);
   const intPart = match?.[2] ?? '';
   const fracPart = match?.[3] ?? '';

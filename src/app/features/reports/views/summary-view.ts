@@ -2,7 +2,12 @@ import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { unwrap } from '../../../core/api/api-types';
 import type { TrendSeries } from '../../../shared/charts/chart-config';
-import { deltaBp, formatBp, formatCount } from '../../../shared/charts/chart-format';
+import {
+  deltaBp,
+  formatBp,
+  formatCount,
+  formatCountCompact,
+} from '../../../shared/charts/chart-format';
 import { PosKpi } from '../../../shared/charts/kpi';
 import { PosTrendChart } from '../../../shared/charts/trend-chart';
 import { PosButton, PosCard, PosTable, type TableColumn } from '../../../shared/ui';
@@ -91,7 +96,7 @@ import { ReportsApi } from '../reports-api';
           [labels]="labels()"
           [series]="tickets()"
           [format]="countFormat"
-          [formatAxis]="countFormat"
+          [formatAxis]="countAxisFormat"
           [loading]="series.isLoading()"
           [height]="220"
           ariaLabel="Número de tickets por periodo"
@@ -132,6 +137,7 @@ export class SummaryView {
   protected readonly filters = inject(ReportFilters);
   protected readonly showTable = signal(false);
   protected readonly countFormat = formatCount;
+  protected readonly countAxisFormat = formatCountCompact;
 
   protected readonly summary = httpResource<SummaryReport>(
     () => ({ url: this.api.url('summary'), params: this.filters.query() }),

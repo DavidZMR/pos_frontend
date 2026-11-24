@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { type Page, toApiError, toPage, unwrap } from '../../../core/api/api-types';
 import { BusinessContext } from '../../../core/business/business-context';
 import { MoneyPipe } from '../../../shared/pipes/money-pipe';
@@ -85,7 +85,11 @@ export class StockPage {
 
   protected readonly searchText = signal('');
   protected readonly categoryId = signal('');
-  protected readonly stockFilter = signal('');
+  /** `?stock=low` / `?stock=out` (p. ej. desde el Tablero) abre la lista ya filtrada. */
+  protected readonly stockFilter = signal(
+    ['low', 'out'].find((v) => v === inject(ActivatedRoute).snapshot.queryParamMap.get('stock')) ??
+      '',
+  );
   protected readonly sort = signal<TableSort | undefined>({ key: 'name', direction: 'asc' });
   private readonly search = debounced(this.searchText);
   protected readonly page = linkedSignal({

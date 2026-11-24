@@ -25,8 +25,19 @@ export function formatMoneyCompact(cents: number): string {
   return compactMoney.format(cents / 100);
 }
 
+/** Conteo completo: 14 623 → "14,623" (KPIs, tablas y textos: nunca abreviado). */
 export function formatCount(value: number): string {
+  return integer.format(value);
+}
+
+/** Conteo para ejes: completo hasta 9,999; después "14.6 k". */
+export function formatCountCompact(value: number): string {
   return Math.abs(value) < 10_000 ? integer.format(value) : compactNumber.format(value);
+}
+
+/** "1 ticket", "2 tickets" (con el número completo). */
+export function plural(count: number, one: string, many: string): string {
+  return `${formatCount(count)} ${count === 1 ? one : many}`;
 }
 
 /** Puntos base → "38.3 %". */

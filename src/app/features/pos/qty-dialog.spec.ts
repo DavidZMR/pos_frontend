@@ -148,6 +148,41 @@ describe('QtyDialog sin báscula', () => {
     expect(t.close).toHaveBeenCalledWith({ qtyBase: 3, weighed: false });
   });
 
+  it('texto inválido: sin importe ni agregar; la coma pide punto', async () => {
+    const t = await setup(fakeScale('disabled'));
+    const el = t.fixture.nativeElement as HTMLElement;
+    const total = () => el.querySelector('.total strong')?.textContent?.trim();
+    const error = () => el.querySelector('.error')?.textContent?.trim() ?? '';
+
+    await t.typeWeight('1.25');
+    expect(total()).toBe('$486.25');
+    await t.typeWeight('1,5');
+    expect(error()).toContain('Usa punto para los decimales');
+    expect(total()).toBe('—');
+    expect(t.submit.disabled).toBe(true);
+    await t.typeWeight('1.2345');
+    expect(error()).toContain('hasta 3 decimales');
+    expect(total()).toBe('—');
+    await t.confirm();
+    expect(t.close).not.toHaveBeenCalled();
+  });
+
+  it('avisa (sin bloquear) si con lo del ticket pasa de la existencia', async () => {
+    const t = await setup(fakeScale('disabled'), {
+      product: { ...shrimp, stock: 1000 },
+      inCartQtyBase: 500,
+    });
+    const el = t.fixture.nativeElement as HTMLElement;
+    const warn = () => el.querySelector('.scale.warn')?.textContent?.replace(/\s+/g, ' ').trim();
+    await t.typeWeight('0.500');
+    expect(warn()).toBeUndefined();
+    await t.typeWeight('0.600');
+    expect(warn()).toContain('Solo hay 1.000 kg en existencia: quedará en negativo');
+    expect(t.submit.disabled).toBe(false);
+    await t.confirm();
+    expect(t.close).toHaveBeenCalledWith({ qtyBase: 600, weighed: false });
+  });
+
   it('al editar un renglón por peso empieza con el valor actual, a mano', async () => {
     const t = await setup(fakeScale(), { product: shrimp, qtyBase: 2000 });
     t.scale.reading.set({ grams: 500, stable: true, at: 1 });

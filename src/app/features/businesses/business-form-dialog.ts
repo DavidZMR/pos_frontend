@@ -1,6 +1,14 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { Component, inject, signal } from '@angular/core';
-import { FormField, form, maxLength, minLength, required, submit } from '@angular/forms/signals';
+import {
+  FormField,
+  form,
+  maxLength,
+  minLength,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { toApiError } from '../../core/api/api-types';
 import { serverFieldErrors } from '../../core/api/server-errors';
 import type { Business } from '../../core/auth/auth-models';
@@ -12,6 +20,7 @@ import {
   PosToggle,
   ToastService,
 } from '../../shared/ui';
+import { isValidRfc, RFC_MESSAGE } from '../../shared/utils/rfc';
 import { BusinessApi, MX_TIMEZONES } from './business-api';
 
 export interface BusinessFormData {
@@ -102,7 +111,9 @@ export class BusinessFormDialog {
     minLength(s.name, 2, { message: 'Mínimo 2 caracteres' });
     maxLength(s.name, 120, { message: 'Máximo 120 caracteres' });
     maxLength(s.legalName, 160, { message: 'Máximo 160 caracteres' });
-    maxLength(s.taxId, 20, { message: 'Máximo 20 caracteres' });
+    validate(s.taxId, ({ value }) =>
+      isValidRfc(value()) ? undefined : { kind: 'rfc', message: RFC_MESSAGE },
+    );
     maxLength(s.phone, 30, { message: 'Máximo 30 caracteres' });
     maxLength(s.address, 250, { message: 'Máximo 250 caracteres' });
     required(s.timezone, { message: 'Elige la zona horaria' });
@@ -112,7 +123,12 @@ export class BusinessFormDialog {
     void submit(this.businessForm, async (f) => {
       this.saving.set(true);
       const { allowNegativeStock, ...fields } = this.model();
-      const input = { ...fields, name: fields.name.trim(), settings: { allowNegativeStock } };
+      const input = {
+        ...fields,
+        name: fields.name.trim(),
+        taxId: fields.taxId.trim().toUpperCase(),
+        settings: { allowNegativeStock },
+      };
       try {
         const saved = this.data.business
           ? await this.api.update(this.data.business.id, input)

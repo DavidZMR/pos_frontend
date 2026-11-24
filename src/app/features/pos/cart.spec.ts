@@ -83,6 +83,25 @@ describe('Cart', () => {
   });
 });
 
+describe('Cart: existencia', () => {
+  it('marca los renglones cuando el total del producto pasa de su existencia', () => {
+    const cart = setup();
+    cart.add(products.get('cer')!, 24); // existencia 24: justo alcanza
+    expect(cart.exceedsStock()).toBe(false);
+    cart.add(products.get('cer')!, 1);
+    expect(cart.lines()[0]!.exceedsStock).toBe(true);
+    expect(cart.exceedsStock()).toBe(true);
+
+    // Peso en varios renglones: 6 kg + 5 kg = 11 kg > 10 kg → los dos renglones avisan.
+    cart.add(products.get('cam')!, 6000);
+    cart.add(products.get('cam')!, 5000);
+    const shrimp = cart.lines().filter((l) => l.productId === 'cam');
+    expect(shrimp.map((l) => l.exceedsStock)).toEqual([true, true]);
+    expect(cart.qtyInCart('cam')).toBe(11000);
+    expect(cart.qtyInCart('cam', shrimp[0]!.key)).toBe(5000);
+  });
+});
+
 describe('suggestedCash', () => {
   it('billetes por encima del total', () => {
     expect(suggestedCash(58225)).toEqual([60000, 100000]);

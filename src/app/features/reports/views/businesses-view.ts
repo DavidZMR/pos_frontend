@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
 import { unwrap } from '../../../core/api/api-types';
-import { formatBp, formatCount } from '../../../shared/charts/chart-format';
+import { formatBp, plural } from '../../../shared/charts/chart-format';
 import { PosRankedBars, type RankedBar } from '../../../shared/charts/ranked-bars';
 import { PosCard, PosTable, type TableColumn } from '../../../shared/ui';
 import { formatMoney } from '../../../shared/utils/format';
@@ -53,7 +53,7 @@ export class BusinessesView {
     this.rows().map((b) => ({
       id: b.businessId,
       label: b.active ? b.name : `${b.name} (inactivo)`,
-      sublabel: `${formatCount(b.tickets)} tickets · margen ${formatBp(b.marginBp)}`,
+      sublabel: `${plural(b.tickets, 'ticket', 'tickets')} · margen ${formatBp(b.marginBp)}`,
       value: b.salesCents,
       valueText: formatMoney(b.salesCents),
       detail: formatBp(b.shareBp),

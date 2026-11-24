@@ -23,6 +23,8 @@ export interface Totals {
 export interface SummaryReport {
   from: string;
   to: string;
+  /** "HH:MM" si el último día de ambos rangos se cortó a esa hora; si no, null. */
+  until?: string | null;
   totals: Totals;
   previous: { from: string; to: string; totals: Totals };
 }

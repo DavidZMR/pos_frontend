@@ -145,14 +145,19 @@ export class ReportsPage {
     return `${scope} · ${this.filters.rangeText()}. Las cifras usan el precio y costo de cada venta.`;
   });
 
-  /** Flechas izquierda/derecha entre pestañas (patrón ARIA de pestañas). */
+  /** Flechas, Inicio y Fin entre pestañas (patrón ARIA de pestañas). */
   protected onTabKey(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     const ids = this.tabs().map((t) => t.id);
     const index = ids.indexOf(this.active());
-    const next = ids[
-      (index + (event.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length
-    ] as Tab;
+    const target: Partial<Record<string, number>> = {
+      ArrowRight: (index + 1) % ids.length,
+      ArrowLeft: (index + ids.length - 1) % ids.length,
+      Home: 0,
+      End: ids.length - 1,
+    };
+    const nextIndex = target[event.key];
+    if (nextIndex === undefined) return;
+    const next = ids[nextIndex] as Tab;
     this.active.set(next);
     queueMicrotask(() => document.getElementById(`tab-${next}`)?.focus());
     event.preventDefault();

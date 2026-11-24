@@ -5,7 +5,7 @@ import { type Page, toPage, unwrap } from '../../core/api/api-types';
 import { BusinessContext } from '../../core/business/business-context';
 import { ConfigService } from '../../core/config/config-service';
 import type { ChartSlot } from '../../shared/charts/chart-config';
-import { deltaBp, formatBp, formatCount } from '../../shared/charts/chart-format';
+import { deltaBp, formatBp, formatCount, plural } from '../../shared/charts/chart-format';
 import { PosKpi } from '../../shared/charts/kpi';
 import { PosRankedBars, type RankedBar } from '../../shared/charts/ranked-bars';
 import { PosSegmentedBar, type Segment } from '../../shared/charts/segmented-bar';
@@ -14,7 +14,16 @@ import { PosBadge, PosButton, PosCard, PosPageHeader } from '../../shared/ui';
 import { formatDateTime, formatMoney, formatQty } from '../../shared/utils/format';
 import type { Product } from '../catalog/catalog-models';
 import { type CashSession, PAYMENT_LABEL, PAYMENT_METHODS, sessionFolio } from '../pos/pos-models';
-import { addDays, periodLabel, presetRange, rangeLabel, todayIn } from './report-dates';
+import {
+  addDays,
+  periodLabel,
+  presetRange,
+  rangeLabel,
+  sameDaysLastMonth,
+  timeIn,
+  timeLabel,
+  todayIn,
+} from './report-dates';
 import type {
   BusinessesReport,
   PaymentsReport,
@@ -24,7 +33,14 @@ import type {
 } from './report-models';
 import { ReportsApi } from './reports-api';
 
-/** Tablero: cómo va hoy, la tendencia del mes y lo que hay que atender (existencias, cajas). */
+/** Productos bajo mínimo que se listan; el resto se resume en "y N más". */
+const LOW_STOCK_SHOWN = 6;
+
+/**
+ * Tablero: cómo va hoy, la tendencia del mes y lo que hay que atender (existencias, cajas).
+ * Las comparaciones son justas: hoy contra ayer A LA MISMA HORA y el mes contra los mismos días
+ * del mes anterior (también cortados a esta hora).
+ */
 @Component({
   selector: 'pos-dashboard-page',
   imports: [
@@ -51,20 +67,20 @@ import { ReportsApi } from './reports-api';
           label="Ventas de hoy"
           [value]="k.sales"
           [deltaBp]="k.salesDelta"
-          previousLabel="vs. ayer"
+          previousLabel="vs. ayer a esta hora"
           [hero]="true"
         />
         <pos-kpi
           label="Tickets de hoy"
           [value]="k.tickets"
           [deltaBp]="k.ticketsDelta"
-          previousLabel="vs. ayer"
+          previousLabel="vs. ayer a esta hora"
         />
         <pos-kpi
           label="Ticket promedio"
           [value]="k.avg"
           [deltaBp]="k.avgDelta"
-          previousLabel="vs. ayer"
+          previousLabel="vs. ayer a esta hora"
         />
         <pos-kpi label="Ganancia de hoy" [value]="k.profit" [hint]="k.margin" />
         @if (monthKpi(); as m) {
@@ -132,6 +148,11 @@ import { ReportsApi } from './reports-api';
                 </li>
               }
             </ul>
+            @if (lowStockMore(); as more) {
+              <a class="more" routerLink="/almacen/existencias" [queryParams]="{ stock: 'low' }"
+                >y {{ more }} más bajo mínimo</a
+              >
+            }
           } @else {
             <p class="muted">Todo en orden: ningún producto bajo su mínimo.</p>
           }
@@ -192,6 +213,13 @@ import { ReportsApi } from './reports-api';
     .list li:last-child {
       border-bottom: none;
     }
+    .more {
+      display: inline-block;
+      margin-top: var(--space-2);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--brand-ink);
+    }
     .name {
       flex: 1;
       min-width: 8rem;
@@ -216,6 +244,8 @@ export class DashboardPage {
     () => this.context.current()?.timezone ?? 'America/Mexico_City',
   );
   private readonly today = computed(() => todayIn(this.timezone()));
+  /** Hora local al abrir el tablero: hasta aquí se cortan hoy, ayer y los días del mes anterior. */
+  private readonly now = computed(() => timeIn(this.timezone()));
   private readonly scope = computed(() => this.context.scope() ?? 'all');
   protected readonly qty = formatQty;
   protected readonly when = formatDateTime;
@@ -223,21 +253,31 @@ export class DashboardPage {
 
   protected readonly description = computed(
     () =>
-      `${this.context.current()?.name ?? 'Todos los negocios'} · hoy ${rangeLabel(this.today(), this.today())}`,
+      `${this.context.current()?.name ?? 'Todos los negocios'} · hoy ${rangeLabel(this.today(), this.today())}, ${timeLabel(this.now())}`,
   );
 
   private readonly todaySummary = httpResource<SummaryReport>(
     () => ({
       url: this.api.url('summary'),
-      params: { from: this.today(), to: this.today(), scope: this.scope() },
+      // El periodo anterior de un día es ayer; `until` corta los dos a esta hora.
+      params: { from: this.today(), to: this.today(), until: this.now(), scope: this.scope() },
     }),
     { parse: (body) => unwrap<SummaryReport>(body) },
   );
   private readonly monthSummary = httpResource<SummaryReport>(
-    () => ({
-      url: this.api.url('summary'),
-      params: { ...presetRange('thisMonth', this.today()), scope: this.scope() },
-    }),
+    () => {
+      const compare = sameDaysLastMonth(this.today());
+      return {
+        url: this.api.url('summary'),
+        params: {
+          ...presetRange('thisMonth', this.today()),
+          until: this.now(),
+          compareFrom: compare.from,
+          compareTo: compare.to,
+          scope: this.scope(),
+        },
+      };
+    },
     { parse: (body) => unwrap<SummaryReport>(body) },
   );
   protected readonly trend = httpResource<SalesSeries>(
@@ -278,7 +318,7 @@ export class DashboardPage {
       this.context.scope()
         ? {
             url: this.config.api('/products'),
-            params: { stock: 'low', limit: 6, active: true, scope: this.scope() },
+            params: { stock: 'low', limit: LOW_STOCK_SHOWN, active: true, scope: this.scope() },
           }
         : undefined,
     { parse: (body) => toPage<Product>(body) },
@@ -315,7 +355,7 @@ export class DashboardPage {
     return {
       sales: formatMoney(totals.salesCents),
       delta: deltaBp(totals.salesCents, previous.totals.salesCents),
-      vs: `vs. ${rangeLabel(previous.from, previous.to)}`,
+      vs: `vs. ${rangeLabel(previous.from, previous.to)} a esta hora`,
     };
   });
 
@@ -358,7 +398,7 @@ export class DashboardPage {
       : this.businesses.value().items.map((b) => ({
           id: b.businessId,
           label: b.name,
-          sublabel: `${formatCount(b.tickets)} tickets · margen ${formatBp(b.marginBp)}`,
+          sublabel: `${plural(b.tickets, 'ticket', 'tickets')} · margen ${formatBp(b.marginBp)}`,
           value: b.salesCents,
           valueText: formatMoney(b.salesCents),
           detail: formatBp(b.shareBp),
@@ -366,6 +406,12 @@ export class DashboardPage {
   );
   protected readonly lowStock = computed(() =>
     this.lowStockResource.hasValue() ? this.lowStockResource.value().items : [],
+  );
+  /** Cuántos más hay bajo mínimo además de los que se listan (0 = ninguno). */
+  protected readonly lowStockMore = computed(() =>
+    this.lowStockResource.hasValue()
+      ? Math.max(0, this.lowStockResource.value().meta.total - this.lowStock().length)
+      : 0,
   );
   protected readonly openSessions = computed(() =>
     this.sessionsResource.hasValue() ? this.sessionsResource.value().items : [],

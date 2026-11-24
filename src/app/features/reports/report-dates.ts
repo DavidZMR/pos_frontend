@@ -36,6 +36,23 @@ export function todayIn(timeZone: string, now: Date = new Date()): string {
   }).format(now);
 }
 
+/** Hora local "HH:MM" (24 h) de un instante en una zona horaria. */
+export function timeIn(timeZone: string, now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(now);
+}
+
+/** "18:05" → "6:05 p. m." (para textos). */
+export function timeLabel(time: string): string {
+  const [h = 0, m = 0] = time.split(':').map(Number);
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, '0')} ${h < 12 ? 'a. m.' : 'p. m.'}`;
+}
+
 export function addDays(date: string, days: number): string {
   const [y, m, d] = date.split('-').map(Number) as [number, number, number];
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
@@ -44,6 +61,17 @@ export function addDays(date: string, days: number): string {
 function monthStart(date: string, monthsBack = 0): string {
   const [y, m] = date.split('-').map(Number) as [number, number];
   return new Date(Date.UTC(y, m - 1 - monthsBack, 1)).toISOString().slice(0, 10);
+}
+
+/**
+ * Los mismos días del mes anterior: 1–23 nov → 1–23 oct. Si el mes anterior es más corto,
+ * termina en su último día (1–31 mar → 1–28 feb).
+ */
+export function sameDaysLastMonth(today: string): { from: string; to: string } {
+  const from = monthStart(today, 1);
+  const lastDay = addDays(monthStart(today), -1);
+  const sameDay = `${from.slice(0, 8)}${today.slice(8, 10)}`;
+  return { from, to: sameDay < lastDay ? sameDay : lastDay };
 }
 
 /** Rango [from, to] de un preset (ambos incluidos). */

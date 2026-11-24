@@ -33,6 +33,8 @@ export interface ExportMeta {
   rangeText: string;
   previousText: string;
   filtersText: string;
+  /** Filtros que sí aplican a las hojas de compras (sin cajero ni forma de pago). */
+  purchaseFiltersText?: string;
   generatedAt: string;
 }
 
@@ -58,7 +60,7 @@ interface Column {
   header: string;
   width: number;
   format?: string;
-  /** Fila de totales: SUM, o una fórmula propia con {r1} {rN} (primera/última fila de datos). */
+  /** Fila de totales: SUM, o una fórmula propia con {r1} (primera fila de datos) y {rN} (la fila de totales). */
   total?: 'sum' | string;
 }
 
@@ -158,7 +160,7 @@ export function buildReportWorkbook(
     ? `Filtros: ${meta.filtersText}`
     : 'Sin filtros adicionales';
   summary.getCell('A4').value =
-    `Generado: ${meta.generatedAt}. Montos con el precio y costo de cada venta.`;
+    `Generado: ${meta.generatedAt} · Montos con el precio y costo de cada venta.`;
   for (const ref of ['A2', 'A3', 'A4']) summary.getCell(ref).font = { color: { argb: MUTED } };
 
   const t = data.summary.totals;
@@ -383,11 +385,12 @@ export function buildReportWorkbook(
   });
 
   // ---- Compras ---------------------------------------------------------------------------------
+  const purchaseMeta = { ...meta, filtersText: meta.purchaseFiltersText ?? meta.filtersText };
   tableSheet(
     workbook,
     'Compras',
     'Compras por periodo',
-    meta,
+    purchaseMeta,
     [
       { header: 'Periodo', width: 16 },
       { header: 'Inicio', width: 12, format: 'dd/mm/yyyy' },
@@ -405,7 +408,7 @@ export function buildReportWorkbook(
     workbook,
     'Compras por proveedor',
     'Compras por proveedor',
-    meta,
+    purchaseMeta,
     [
       { header: 'Proveedor', width: 30 },
       { header: 'Total', width: 16, format: MONEY, total: 'sum' },
@@ -418,7 +421,7 @@ export function buildReportWorkbook(
     workbook,
     'Productos comprados',
     'Productos comprados',
-    meta,
+    purchaseMeta,
     [
       { header: 'Código', width: 9 },
       { header: 'Producto', width: 34 },
@@ -448,11 +451,16 @@ export function buildReportWorkbook(
         { header: 'Negocio', width: 28 },
         { header: 'Ventas', width: 16, format: MONEY, total: 'sum' },
         { header: 'Ganancia', width: 16, format: MONEY, total: 'sum' },
-        { header: 'Margen', width: 10, format: PERCENT },
+        { header: 'Margen', width: 10, format: PERCENT, total: 'IF(B{rN}=0,0,C{rN}/B{rN})' },
         { header: 'Tickets', width: 10, format: INTEGER, total: 'sum' },
-        { header: 'Ticket promedio', width: 16, format: MONEY },
+        {
+          header: 'Ticket promedio',
+          width: 16,
+          format: MONEY,
+          total: 'IF(E{rN}=0,0,B{rN}/E{rN})',
+        },
         { header: 'Compras', width: 16, format: MONEY, total: 'sum' },
-        { header: '% de las ventas', width: 12, format: PERCENT },
+        { header: '% de las ventas', width: 12, format: PERCENT, total: 'IF(B{rN}=0,0,1)' },
       ],
       data.businesses.items.map((b) => [
         b.name,
