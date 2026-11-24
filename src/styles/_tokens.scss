@@ -60,6 +60,24 @@
   --info: var(--c-tide);
   --info-soft: var(--c-mist);
 
+  /* ---- Gráficas ----------------------------------------------------------
+     Paleta categórica validada (skill dataviz, validate_palette.js, superficie blanca):
+     orden FIJO por entidad, nunca por rango. 3 y 4 quedan < 3:1 de contraste: solo con
+     etiquetas o tabla. Secuencial = un tono (azul) de claro a oscuro. */
+  --chart-1: #1b74a3; /* tide: serie principal (ventas) */
+  --chart-2: #eb6834; /* naranja: ganancia */
+  --chart-3: #1baf7a; /* aqua */
+  --chart-4: #eda100; /* amarillo */
+  --chart-grid: var(--c-frost);
+  --chart-axis: var(--c-frost-strong);
+  --seq-100: #cde2fb;
+  --seq-200: #9ec5f4;
+  --seq-300: #6da7ec;
+  --seq-400: #3987e5;
+  --seq-500: #256abf;
+  --seq-600: #184f95;
+  --seq-700: #0d366b;
+
   --focus-ring: var(--c-tide);
   --backdrop: oklch(27% 0.05 235 / 0.45);
 
