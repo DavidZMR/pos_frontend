@@ -1,17 +1,36 @@
 // Prepara build/backend para el instalador:
-//   1. compila ../pos_backend (tsc)
-//   2. copia dist/, package.json y package-lock.json
-//   3. instala SOLO dependencias de producción (npm ci --omit=dev)
-//   4. genera un .env de producción a partir de ../pos_backend/.env (Mongo + JWT)
+//   1. compila ../pos_backend (tsc: también verifica tipos)
+//   2. empaqueta dist/server.js y TODAS sus dependencias en UN archivo (esbuild): server.cjs
+//   3. genera un .env de producción a partir de ../pos_backend/.env (Mongo + JWT)
+// Un solo archivo en lugar de miles en node_modules: Windows Defender revisa 1 archivo en la
+// primera apertura y el backend arranca en una fracción del tiempo.
 // El backend queda fuera del asar (extraResources) y lo lanza electron/lib/backend.cjs.
 import { execSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const backendSrc = join(root, '..', 'pos_backend');
 const target = join(root, 'build', 'backend');
+
+/**
+ * Dependencias opcionales del driver de MongoDB (Kerberos, compresión, AWS, cifrado…): el
+ * driver las carga con try/catch y no se usan con Atlas + usuario/contraseña. pino-pretty solo
+ * se usa en desarrollo.
+ */
+const OPTIONAL_EXTERNALS = [
+  'kerberos',
+  '@mongodb-js/zstd',
+  '@aws-sdk/credential-providers',
+  'gcp-metadata',
+  'snappy',
+  'socks',
+  'aws4',
+  'mongodb-client-encryption',
+  'pino-pretty',
+];
 
 const run = (command, cwd) => {
   console.log(`> ${command}  (${cwd})`);
@@ -37,24 +56,28 @@ run('npm run build', backendSrc);
 
 rmSync(target, { recursive: true, force: true });
 mkdirSync(target, { recursive: true });
-cpSync(join(backendSrc, 'dist'), join(target, 'dist'), {
-  recursive: true,
-  filter: (file) => !file.endsWith('.map'),
+
+const outfile = join(target, 'server.cjs');
+const result = await build({
+  entryPoints: [join(backendSrc, 'dist', 'server.js')],
+  outfile,
+  bundle: true,
+  platform: 'node',
+  target: 'node22',
+  format: 'cjs',
+  external: OPTIONAL_EXTERNALS,
+  // El código fuente es ESM; en CJS `import.meta.url` no existe: se emula para las dependencias.
+  define: { 'import.meta.url': 'importMetaUrl' },
+  banner: { js: "const importMetaUrl = require('node:url').pathToFileURL(__filename).href;" },
+  legalComments: 'none',
+  logLevel: 'warning',
+  metafile: true,
+  // Los paquetes se resuelven desde ../pos_backend/node_modules.
+  absWorkingDir: backendSrc,
 });
-
-const pkg = JSON.parse(readFileSync(join(backendSrc, 'package.json'), 'utf8'));
-const runtimePkg = {
-  name: pkg.name,
-  version: pkg.version,
-  private: true,
-  type: pkg.type,
-  main: pkg.main,
-  dependencies: pkg.dependencies,
-};
-writeFileSync(join(target, 'package.json'), `${JSON.stringify(runtimePkg, null, 2)}\n`);
-cpSync(join(backendSrc, 'package-lock.json'), join(target, 'package-lock.json'));
-
-run('npm ci --omit=dev --no-audit --no-fund', target);
+const inputs = Object.keys(result.metafile.inputs).length;
+const sizeMb = (statSync(outfile).size / 1024 / 1024).toFixed(1);
+console.log(`Backend empaquetado: ${outfile} (${sizeMb} MB, ${inputs} módulos en 1 archivo)`);
 
 // .env de producción: solo lo necesario. PORT/HOST/CORS los define el lanzador de Electron.
 const source = Object.fromEntries(

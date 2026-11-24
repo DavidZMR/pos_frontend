@@ -10,7 +10,9 @@ const READY = /POS_BACKEND_READY port=(\d+)/;
  * @returns {Promise<{ port: number, stop: () => void }>}
  */
 function startBackend({ backendDir, log, corsOrigin, timeoutMs = 30_000 }) {
-  const entry = path.join(backendDir, 'dist', 'server.js');
+  // Instalador: un solo archivo (server.cjs, empaquetado con esbuild). Sin empaquetar: dist/.
+  const bundled = path.join(backendDir, 'server.cjs');
+  const entry = fs.existsSync(bundled) ? bundled : path.join(backendDir, 'dist', 'server.js');
   if (!fs.existsSync(entry)) {
     return Promise.reject(new Error(`No se encontró el backend en ${entry}`));
   }

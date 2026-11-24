@@ -23,18 +23,14 @@ files:
 asarUnpack:
   - 'node_modules/@serialport/bindings-cpp/prebuilds/win32-x64/**'
 
-# Backend compilado + .env + node_modules de producción, fuera del asar.
-# Lección de JJ: electron-builder omite node_modules en extraResources si no se declaran aparte.
+# Backend empaquetado en UN archivo (server.cjs, esbuild) + .env, fuera del asar.
+# Sin node_modules: Defender revisa 1 archivo en lugar de miles en la primera apertura.
 extraResources:
   - from: build/backend
     to: backend
     filter:
-      - '**/*'
-      - '!node_modules{,/**/*}'
-  - from: build/backend/node_modules
-    to: backend/node_modules
-    filter:
-      - '**/*'
+      - server.cjs
+      - .env
 
 asar: true
 npmRebuild: false
