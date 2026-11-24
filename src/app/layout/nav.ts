@@ -23,7 +23,11 @@ const MANAGERS: readonly Role[] = ['superadmin', 'admin'];
 export const NAV: readonly NavGroup[] = [
   {
     label: 'General',
-    items: [{ label: 'Inicio', path: '/inicio', icon: 'dashboard', roles: ALL }],
+    items: [
+      { label: 'Inicio', path: '/inicio', icon: 'dashboard', roles: ALL },
+      { label: 'Tablero', path: '/tablero', icon: 'gauge', roles: MANAGERS },
+      { label: 'Reportes', path: '/reportes', icon: 'chart', roles: MANAGERS },
+    ],
   },
   {
     label: 'Operación',

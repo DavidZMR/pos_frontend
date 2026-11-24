@@ -33,6 +33,9 @@
               "@fontsource-variable/archivo/wdth.css",
               "@fontsource-variable/ibm-plex-sans/wght.css",
               "src/styles.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "exceljs"
             ]
           },
           "configurations": {
