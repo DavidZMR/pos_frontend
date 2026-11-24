@@ -29,22 +29,33 @@ const checks = [
     'serialport: sin binarios de otras plataformas',
     existsSync(prebuilds) && readdirSync(prebuilds).join() === 'win32-x64',
   ],
-  ['backend/dist/server.js', existsSync(join(backend, 'dist', 'server.js'))],
   [
-    'backend/package.json con "type": "module"',
+    'backend en un solo archivo (server.cjs, > 1 MB con sus dependencias)',
+    existsSync(join(backend, 'server.cjs')) &&
+      statSync(join(backend, 'server.cjs')).size > 1_000_000,
+  ],
+  [
+    'backend sin node_modules ni dist (nada de miles de archivos)',
+    !existsSync(join(backend, 'node_modules')) && !existsSync(join(backend, 'dist')),
+  ],
+  [
+    'backend con lo esencial: express, mongoose, bcryptjs, jsonwebtoken, dotenv, zod',
     (() => {
       try {
-        return JSON.parse(readFileSync(join(backend, 'package.json'), 'utf8')).type === 'module';
+        const code = readFileSync(join(backend, 'server.cjs'), 'utf8');
+        return [
+          'node_modules/express/',
+          'node_modules/mongoose/',
+          'node_modules/bcryptjs/',
+          'node_modules/jsonwebtoken/',
+          'node_modules/dotenv/',
+          'node_modules/zod/',
+        ].every((dep) => code.includes(dep));
       } catch {
         return false;
       }
     })(),
   ],
-  ...['express', 'mongoose', 'dotenv', 'zod', 'jsonwebtoken', 'bcryptjs'].map((dep) => [
-    `backend/node_modules/${dep}`,
-    existsSync(join(backend, 'node_modules', dep)),
-  ]),
-  ['backend sin dependencias de desarrollo', !existsSync(join(backend, 'node_modules', 'vitest'))],
   [
     'backend/.env con MONGODB_URI y JWT_SECRET',
     (() => {

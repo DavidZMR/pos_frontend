@@ -2,11 +2,12 @@
 // Angular lo lee como `window.pos` (ver src/app/core/config/pos-bridge.ts).
 const { contextBridge, ipcRenderer } = require('electron');
 
-const PREFIX = '--pos-config=';
+// Configuración de esta carga (apiUrl del backend, versión). Sincrónico a propósito: Angular la
+// lee al iniciar. La ventana se crea antes de que el backend esté listo; la app se carga después,
+// cuando la apiUrl ya existe.
 let config = {};
 try {
-  const arg = process.argv.find((value) => value.startsWith(PREFIX));
-  if (arg) config = JSON.parse(decodeURIComponent(arg.slice(PREFIX.length)));
+  config = ipcRenderer.sendSync('pos:config') ?? {};
 } catch {
   config = {};
 }
