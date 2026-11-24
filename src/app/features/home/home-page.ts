@@ -8,6 +8,8 @@ import { PosBadge, PosIcon, PosPageHeader } from '../../shared/ui';
 
 const DESCRIPTIONS: Record<string, string> = {
   '/venta': 'Cobra rápido con lector, código corto o búsqueda por nombre.',
+  '/tablero': 'Cómo va hoy: ventas, tickets, lo más vendido y lo que hay que atender.',
+  '/reportes': 'Ventas, ganancia, lo más vendido, pagos, horas pico y compras; exporta a Excel.',
   '/caja': 'Tu turno: fondo, retiros, ventas por forma de pago y corte.',
   '/ventas': 'Historial de tickets, detalle y cancelaciones.',
   '/negocios': 'Da de alta negocios, edita sus datos y desactívalos.',

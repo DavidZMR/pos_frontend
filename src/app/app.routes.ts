@@ -33,6 +33,19 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
       },
       {
+        path: 'tablero',
+        title: `Tablero · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () =>
+          import('./features/reports/dashboard-page').then((m) => m.DashboardPage),
+      },
+      {
+        path: 'reportes',
+        title: `Reportes · ${TITLE}`,
+        canMatch: [roleGuard('superadmin', 'admin')],
+        loadComponent: () => import('./features/reports/reports-page').then((m) => m.ReportsPage),
+      },
+      {
         path: 'venta',
         title: `Punto de venta · ${TITLE}`,
         data: { fullBleed: true },
