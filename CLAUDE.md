@@ -51,6 +51,8 @@ scripts/         stage-backend, verificación de empaquetado
   - Configuración por PC en `/equipo` (admin). Lógica serial en `electron/lib/scale/`, probada con `npm run test:electron` (`SerialPortMock`).
   - Impresora: `PrinterStore` (`ready` = configurada **e** instalada en Windows). Tickets como HTML puro en `features/pos/ticket/ticket-html.ts` (escapar todo dato; 58/80 mm, negro); `TicketPrinter` los imprime (venta con F9 o automático, reimpresión, corte). Si no hay impresora, no se ofrece imprimir.
   - Datos del ticket (nombre, RFC, dirección, encabezado, pie) en `/equipo` → `PATCH /businesses/current`, con vista previa en `<iframe sandbox="">`.
+- **Reportes** (`features/reports/`): `ReportFilters` (provisto en la página; rango en la zona del NEGOCIO con `todayIn`, `query()` agrega el negocio para recargar al cambiarlo), vistas por pestaña con `httpResource`, `/tablero` y `/reportes` (admin/superadmin; superadmin sin negocio = todos). Gráficas: `shared/charts` (ver skill `pos-ui-kit`). Excel: `ReportExporter` carga ExcelJS bajo demanda; `buildReportWorkbook()` es puro y probado (centavos ÷ 100 solo ahí).
+- Datos de prueba realistas: backend con `npm run dev:memory -- --history` (~14 meses).
 - **Marca visible** ("El Atlántico"): `src/app/core/branding.ts` (UI) + `electron/branding.cjs` (ventana, carga) + `productName` en `electron-builder.yml` (instalador). Ejecutable `ElAtlantico.exe` y carpeta de datos `%APPDATA%\PuntoVenta` fijos en ASCII. El nombre del **negocio** es dato (Negocios / Equipo → Datos del ticket).
 - Textos de UI en español.
 
