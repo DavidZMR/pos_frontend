@@ -1,6 +1,6 @@
 // Proceso principal de la app de escritorio (Electron).
 // Flujo: instancia única → protocolo app:// para la UI → backend embebido (o API externa) → ventana.
-const { app, BrowserWindow, Menu, dialog, net, protocol, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -30,10 +30,21 @@ if (!app.commandLine.hasSwitch('user-data-dir')) {
   app.setPath('userData', path.join(app.getPath('appData'), DATA_DIR));
 }
 
+// Menos procesos = arranque más rápido. Algunos antivirus (medido con McAfee) revisan CADA proceso
+// que abre la app: ~10–13 s por proceso. El GPU y el servicio de red corren dentro del proceso
+// principal (medido: 57.7 s → 34.7 s hasta el inicio de sesión en una PC con McAfee).
+app.commandLine.appendSwitch('in-process-gpu');
+app.commandLine.appendSwitch('enable-features', 'NetworkServiceInProcess2');
+
+/** Página de arranque: se sirve desde app://pos para que la app cargue en el MISMO proceso. */
+const STARTUP_PATH = '__arranque';
+
 let log;
 let mainWindow = null;
 let backend = null;
 let hardware = null;
+/** Lo que el preload entrega a Angular como `window.pos.config` (apiUrl se conoce al final). */
+let runtimeConfig = { apiUrl: '', appVersion: app.getVersion() };
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -61,8 +72,13 @@ async function boot() {
   );
   Menu.setApplicationMenu(null);
   registerUiProtocol();
+  // El preload pide la configuración al cargar cada página (sincrónico: Angular la lee al iniciar).
+  ipcMain.on('pos:config', (event) => {
+    event.returnValue = isTrustedSender(event) ? runtimeConfig : {};
+  });
 
-  const splash = createSplash();
+  // La ventana se abre YA con "Iniciando…" mientras arranca el backend (sin ventana extra).
+  createMainWindow();
   try {
     const config = loadConfig(app.getPath('userData'), log);
     // El hardware es opcional: si falla, la app sigue (peso a mano, sin imprimir).
@@ -79,12 +95,13 @@ async function boot() {
     }
     const apiUrl = await resolveApiUrl(config);
     log.info(`API: ${apiUrl}`);
-    createMainWindow(apiUrl, () => {
-      if (!splash.isDestroyed()) splash.destroy();
-    });
+    runtimeConfig = { apiUrl, appVersion: app.getVersion() };
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      await mainWindow.loadURL(DEV_SERVER_URL || `${APP_ORIGIN}/`);
+    }
   } catch (error) {
     log.error('No se pudo iniciar la aplicación', error);
-    if (!splash.isDestroyed()) splash.destroy();
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
     dialog.showErrorBox(
       `${DISPLAY_NAME} no pudo iniciar`,
       `${error.message}\n\nDetalle en el registro:\n${log.file}`,
@@ -122,6 +139,11 @@ function registerUiProtocol() {
   protocol.handle(APP_SCHEME, (request) => {
     const { pathname } = new URL(request.url);
     const relative = decodeURIComponent(pathname).replace(/^\/+/, '');
+    if (relative === STARTUP_PATH) {
+      return new Response(startupHtml(), {
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      });
+    }
     let file = path.normalize(path.join(UI_DIR, relative));
     if (!file.startsWith(UI_DIR)) return new Response('Prohibido', { status: 403 });
 
@@ -132,9 +154,7 @@ function registerUiProtocol() {
   });
 }
 
-function createMainWindow(apiUrl, onShown) {
-  const config = { apiUrl, appVersion: app.getVersion() };
-
+function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1366,
     height: 800,
@@ -142,21 +162,19 @@ function createMainWindow(apiUrl, onShown) {
     minHeight: 640,
     show: false,
     title: DISPLAY_NAME,
-    backgroundColor: '#F4F8FA',
+    backgroundColor: '#0B2E40',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      additionalArguments: [`--pos-config=${encodeURIComponent(JSON.stringify(config))}`],
     },
   });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
     mainWindow.show();
-    onShown();
   });
 
   // Enlaces externos se abren en el navegador; la ventana nunca sale de la app.
@@ -179,22 +197,13 @@ function createMainWindow(apiUrl, onShown) {
     mainWindow = null;
   });
 
-  void mainWindow.loadURL(DEV_SERVER_URL || `${APP_ORIGIN}/`);
+  // Primero la pantalla de arranque; boot() carga la app en esta misma ventana al estar listo.
+  void mainWindow.loadURL(`${APP_ORIGIN}/${STARTUP_PATH}`);
 }
 
-function createSplash() {
-  const splash = new BrowserWindow({
-    width: 420,
-    height: 260,
-    frame: false,
-    resizable: false,
-    movable: true,
-    center: true,
-    show: true,
-    backgroundColor: '#0B2E40',
-    webPreferences: { sandbox: true, contextIsolation: true },
-  });
-  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><style>
+/** "Iniciando…" (mismo origen que la app: no abre otro proceso de ventana). */
+function startupHtml() {
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${DISPLAY_NAME}</title><style>
     html,body{margin:0;height:100%;background:#0B2E40;color:#EEF7FB;font-family:"Segoe UI",system-ui,sans-serif}
     body{display:grid;place-items:center;text-align:center}
     .name{font-size:34px;letter-spacing:-.02em;font-weight:300}.name b{font-weight:800}
@@ -204,6 +213,4 @@ function createSplash() {
     @keyframes m{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
   </style></head><body><div><div class="name">${LEAD} <b>${STRONG}</b></div>
   <div class="msg">Iniciando…</div><div class="bar"><i></i></div></div></body></html>`;
-  void splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
-  return splash;
 }
